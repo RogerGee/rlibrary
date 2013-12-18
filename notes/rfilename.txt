@@ -1,0 +1,44 @@
+rfilename -
+------------------------------------------------------------------------------------------------
+Needed POSIX documentation
+------------------------------------------------------------------------------------------------
+Types:
+        entry - represents a file or directory entry
+        filename - represents a string that refers to a file
+        path - represents a string that refers to a directory
+------------------------------------------------------------------------------------------------
+Getting directory entries:
+        DIR* directory;
+        directory = opendir("the path name");
+        dirent* dirEntry;
+        while (true)
+        {
+                dirEntry = readdir(directory);
+                if (dirEntry == NULL)
+                   break;
+                // get name with
+                dirEntry->d_name // char[]
+        }
+------------------------------------------------------------------------------------------------
+Getting file info:
+        stat st;
+        stat("the file name",&st);
+        st.st_ctime; // create time (but hardly accurate)
+        st.st_atime; // access time (read)
+        st.st_mtime; // last modify time (write)
+        st.st_size; // the size in bytes
+------------------------------------------------------------------------------------------------
+Getting and working with system times:
+time_t t = time(NULL);
+struct tm* asdf = localtime(&t);
+
+if (asdf != NULL)
+{
+        printf("%s\n",asctime(asdf));
+        printf("The year is %d.\n",asdf->tm_year+1900);
+        printf("The month is %d.\n",asdf->tm_mon);
+        printf("The day is %d.\n",asdf->tm_mday);
+        printf("The hour is %d.\n",asdf->tm_hour);
+        printf("The second is %d.\n",asdf->tm_sec);
+        printf("The minute is %d.\n",asdf->tm_min);
+}

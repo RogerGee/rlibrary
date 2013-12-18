@@ -1,0 +1,31 @@
+RLibrary General Development Notes
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Conventions:
+        - getters and setters - may apply zero to both of these overloads to an attribute:
+          - const T& get_attribute() const (if possible)
+          - else => T get_attribute() const
+          - void set_attribute(const T& attributeValue);
+        - Conditional compilation:
+         ->The library shall define symbols to be used to conditionally compile system specific code. These symbols refer to the API/framework that the code is to
+target. For example, RLIBRARY_BUILD_WIN32 refers to code that targets the Windows API.
+         -> Each header file should ideally be transparent and not require conditional compilation using any of the include symbols. However, the header may be 
+implemented in many different ways targeting different frameworks/APIs. Refer to the following model:
+            header.h: contains interface
+            impl.cpp: contains transparent cross-platform implementation
+             -> ifdef RLIBRARY_BUILD_FRAMEWORK1
+              -> include impl_framework1.cpp: contains code specific to the platform 'framework1'
+             -> else ifdef RLIBRARY_BUILD_FRAMEWORK2
+              -> include impl_framework2.cpp: contains code specific to the platform 'framework2'
+         -> In this way, each target is a transparent cpp source file. Based on the preprocessor symbols, the main target should include system specific 
+implementation file(s).
+         -> Names: since a target platform framework may use names that exist in namespace rtypes, the names should be imported (via a using directive) after the
+inclusion of the target framework headers. For example:
+             // something_win32.cpp
+             #include <Windows.h> // gets ::byte; allow global byte to be defined independently
+             using namespace rtypes; // gets rtypes::byte, allow non-global byte to be imported
+             // 'byte' must be qualified as either: ::byte or rtypes::byte
+        - rlibrary types
+          - the following types must be made included into every rlibrary object header:
+            - rtypestypes.h
+            - rtypes::str from rstring.h
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
