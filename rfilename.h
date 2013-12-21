@@ -11,6 +11,9 @@
 
 namespace rtypes
 {
+    /* file_entry
+     *  represents a filesystem entry; not every field may be supported
+     */
     struct file_entry
     {
         file_entry();
@@ -30,6 +33,11 @@ namespace rtypes
     typedef dynarray<file_entry> listing;
     typedef dynarray<str> simple_listing;
 
+    /* path
+     *  represents an actual or potential directory name and performs operations
+     * on string representations of path names and on the corresponding
+     * filesystem object
+     */
     class path
     {
     public:
@@ -90,6 +98,11 @@ namespace rtypes
         static str _getRel(const str&,const str&); // [sys]
     };
 
+    /* filename
+     *  represents a regular (data-containing) file, either actual or potential
+     * within the filesystem; performs operations on the string representation
+     * of a file name and on the corresponding filesystem object
+     */
     class filename
     {
     public:

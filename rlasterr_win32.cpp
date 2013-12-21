@@ -15,6 +15,8 @@ using namespace rtypes;
         set<does_not_exist_error>();
     else if (err == ERROR_DIR_NOT_EMPTY)
         set<directory_not_empty_error>();
+    else if (err == ERROR_INVALID_HANDLE)
+        set<invalid_resource_error>();
     // set undocumented error
     else
         set<rlib_error>(err);
@@ -32,6 +34,8 @@ using namespace rtypes;
         throw does_not_exist_error();
     case ERROR_DIR_NOT_EMPTY:
         throw directory_not_empty_error();
+    case ERROR_INVALID_HANDLE:
+        throw invalid_resource_error();
     }
     // throw undocumented error
     throw rlib_error(err);

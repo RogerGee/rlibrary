@@ -28,6 +28,8 @@ using namespace rtypes;
         set<resource_in_use_error>();
     else if (errno == EIO)
         set<io_error>();
+    else if (errno == EBADF)
+        set<invalid_resource_error>();
     // set undocumented error
     else
         set<rlib_error>(errno);
@@ -59,6 +61,8 @@ using namespace rtypes;
         throw resource_in_use_error();
     case EIO:
         throw io_error();
+    case EBADF:
+        throw invalid_resource_error();
     }    
     // throw undocumented error
     throw rlib_error(errno);

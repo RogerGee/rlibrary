@@ -1,6 +1,7 @@
 #include "rfilename.h"
 #include "rintegration.h"
 #include "rlasterr.h"
+#include "riodevice.h"
 #include <iostream>
 using namespace std;
 using namespace rtypes;
@@ -28,5 +29,8 @@ ostream& operator <<(ostream& stream,const filename& fn)
 
 int main()
 {
-    
+    io_resource res;
+    int fd = 0;
+
+    res = fd;
 }

@@ -117,6 +117,11 @@ namespace rtypes
         virtual const char* message() const
         { return "An IO error occurred during the operation."; }
     };
+    struct invalid_resource_error : rlib_error
+    {
+        virtual const char* message() const
+        { return "The operation failed because the specified system resource value was invalid"; }
+    };
 }
 
 #endif
