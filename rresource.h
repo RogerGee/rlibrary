@@ -14,9 +14,9 @@ namespace rtypes
     class resource
     {
         template<size_t BYTE_CNT2> 
-        friend bool rtypes::operator ==(const resource<BYTE_CNT2>&,const resource<BYTE_CNT2>&);
+        friend bool operator ==(const resource<BYTE_CNT2>&,const resource<BYTE_CNT2>&);
         template<size_t BYTE_CNT2> 
-        friend bool rtypes::operator !=(const resource<BYTE_CNT2>&,const resource<BYTE_CNT2>&);
+        friend bool operator !=(const resource<BYTE_CNT2>&,const resource<BYTE_CNT2>&);
     public:
         resource();
         resource(byte fillValue);
