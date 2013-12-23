@@ -14,14 +14,14 @@ namespace rtypes
      */
     enum io_operation_flag
     {
-        no_device,
-        no_operation,
-        success_read,
-        success_write,
-        no_input,
-        no_output,
-        bad_read,
-        bad_write
+        no_device, // no valid IO context exists for the last operation
+        no_operation, // an operation has not been performed on any valid IO context(s)
+        success_read, // input operation was successful
+        success_write, // output operation was successful
+        no_input, // the input device did not return any input
+        no_output, // the output device did not accept any output
+        bad_read, // the input device failed to complete the operation
+        bad_write // the output device failed to complete the operation
     };
 
     /* io_access_flag
@@ -58,35 +58,68 @@ namespace rtypes
     {
     public:
         io_device();
+        io_device(const io_device&); // creates a copy of the current IO context of the specified device
         virtual ~io_device();
 
-        bool open(const char* deviceID = NULL);
-        bool open_input(const char* deviceID = NULL);
-        bool open_output(const char* deviceID = NULL);
+        io_device& operator =(const io_device&); // creates a copy of the current IO context of the specified device
 
-        void redirect(const io_device&);
-        void redirect_input(const io_device&);
-        void redirect_output(const io_device&);
+        void read(str& buffer) // reads the capacity of the specified string object from the device
+        { _readBuffer(&buffer[0],buffer.capacity()); }
+        void read(void* buffer,dword bytesToRead) // reads the specified amount of bytes from the device into the specified buffer
+        { _readBuffer(buffer,bytesToRead); }
+        str read(dword bytesToRead = 0); // reads the specified number of bytes from the device into a string buffer and returns the result
+        void write(const str& buffer) // writes the size of the specified string buffer to the device
+        { _writeBuffer(buffer.c_str(),buffer.size()); }
+        void write(const void* buffer,dword length) // writes the specified buffer to the device
+        { _writeBuffer(buffer,length); }
 
-        bool unredirect();
-        bool unredirect_input();
-        bool unredirect_output();
+        io_operation_flag get_last_operation_status() const // returns the last operation status flag
+        { return _lastOp; }
+        dword get_last_byte_count() const // returns the last number of bytes processed
+        { return _byteCount; }
 
-        void close();
-        void close_input();
-        void close_output();
+        bool open(const char* deviceID = NULL); // opens the device in some device-specific way using (if specified) a device string ID
+        bool open_input(const char* deviceID = NULL); // opens only the input device in some device-specific way using (if specified) a device string ID
+        bool open_output(const char* deviceID = NULL); // opens only the output device in some device-specific way using (if specified) a device string ID
+
+        void redirect(const io_device&); // saves the current IO context (if any) and applies any current, valid context from the specified device
+        void redirect_input(const io_device&); // saves the current input context (if any) and applies any current, valid input context from the specified device
+        void redirect_output(const io_device&); // saves the current output context (if any) and applies any current, valid output context from the specified device
+
+        bool unredirect(); // closes the current IO context and loads the previous IO context (if any)
+        bool unredirect_input(); // closes the current input context and loads the previous input context (if any)
+        bool unredirect_output(); // closes the current output context and loads the previous output context (if any)
+
+        void close(); // closes the current and all previous IO contexts
+        void close_input(); // closes the current and all previous input contexts
+        void close_output(); // closes the current and all previous output contexts
+
+        bool is_redirected_input() const; // determines if any previous input contexts are available
+        bool is_redirected_output() const; // determines if any previous output contexts are available
+        bool is_valid_context() const // determines if the current IO context is valid (at least one context is available)
+        { return is_valid_input() || is_valid_output(); }
+        bool is_valid_input() const; // determines if the current input context is available
+        bool is_valid_output() const; // determines if the current output context is available
     protected:
-
         io_resource* _input;
         io_resource* _output;
+        io_operation_flag _lastOp;
+        dword _byteCount;
+
+        // generic read/write interface
+        virtual void _readBuffer(void* buffer,dword bytesToRead); // reads a buffer from the device [sys]
+        virtual void _writeBuffer(const void* buffer,dword length); // writes a buffer to the device [sys]
     private:
         stack<io_resource*> _redirInput;
         stack<io_resource*> _redirOutput;
 
-        // virtual device interface
-        virtual void _openEvent(const char* deviceID,io_access_flag accessKind,dword** arguments = NULL,dword argumentCount = 0) = 0;
-        virtual void _closeEvent(io_access_flag shutdownKind) = 0;
-        
+        // abstract device interface
+        virtual void _openEvent(const char* deviceID,
+            io_access_flag accessKind,
+            dword** arguments = NULL,
+            dword argumentCount = 0) = 0; // opens a device in a system specific manner
+        virtual void _readAll(str& buffer) = 0; // reads all available data from the device into the specified buffer, resizing as necessary
+        virtual void _closeEvent(io_access_flag shutdownKind) = 0; // called whenever a device is completely shutdown
     };
 }
 

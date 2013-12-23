@@ -22,3 +22,11 @@ io_resource::~io_resource()
             this->assign(INVALID_HANDLE_VALUE);
     }
 }
+
+// rtypes::io_device
+void io_device::_readBuffer(void* buffer,dword bytesToRead)
+{
+}
+void io_device::_writeBuffer(const void* buffer,dword length)
+{
+}
