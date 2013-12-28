@@ -1,10 +1,13 @@
 /* riodevice.h
+ *  contains base input/output functionality; this header should not 
+ * have to be included directly
  */
 #ifndef RIODEVICE_H
 #define RIODEVICE_H
 #include "rresource.h" // gets rtypestypes.h
 #include "rstring.h"
 #include "rstack.h"
+#include "rstream.h"
 
 namespace rtypes
 {
@@ -29,6 +32,7 @@ namespace rtypes
      */
     enum io_access_flag
     {
+        no_access = 0x0000,
         write_access = 0x0001,
         read_access = 0x0002,
         all_access = 0x0003
@@ -45,6 +49,7 @@ namespace rtypes
         typedef resource<8> _MyBase;
     public:
         io_resource(); // initialize an invalid resource in a system-specific manner [sys]
+        io_resource(void* defaultValue); // initialize a resource with the specified default value
         ~io_resource(); // closes the IO resource in a system-specific manner [sys] [terr]
     private:
         int _reference;
@@ -103,16 +108,17 @@ namespace rtypes
     protected:
         io_resource* _input;
         io_resource* _output;
+        stack<io_resource*> _redirInput;
+        stack<io_resource*> _redirOutput;
         io_operation_flag _lastOp;
         dword _byteCount;
 
         // generic read/write interface
         virtual void _readBuffer(void* buffer,dword bytesToRead); // reads a buffer from the device [sys]
         virtual void _writeBuffer(const void* buffer,dword length); // writes a buffer to the device [sys]
-    private:
-        stack<io_resource*> _redirInput;
-        stack<io_resource*> _redirOutput;
 
+        static int& _ResourceRef(io_resource*);
+    private:
         // abstract device interface
         virtual void _openEvent(const char* deviceID,
             io_access_flag accessKind,

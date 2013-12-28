@@ -42,6 +42,11 @@ namespace rtypes
         virtual const char* message() const
         { return "The specified operation was undefined."; }
     };
+    struct bad_resource_assignment_error : rlib_error
+    {
+        virtual const char* message() const
+        { return "The rresource could not assign the specified value because it does not have enough bit-width."; }
+    };
     struct out_of_bounds_error : rlib_error
     {
         virtual const char* message() const

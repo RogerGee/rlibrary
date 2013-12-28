@@ -7,6 +7,7 @@
 #define RRESOURCE_H
 #include "rtypestypes.h"
 #include <cstddef> // get size_t
+#include "rerror.h"
 
 namespace rtypes
 {

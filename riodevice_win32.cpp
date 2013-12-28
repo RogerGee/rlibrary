@@ -26,7 +26,56 @@ io_resource::~io_resource()
 // rtypes::io_device
 void io_device::_readBuffer(void* buffer,dword bytesToRead)
 {
+    if (_input != NULL)
+    {
+        DWORD bytesRead;
+        if ( !::ReadFile(_input->interpret_as<HANDLE>(),buffer,bytesToRead,&bytesRead,NULL) )
+        {
+            _lastOp = bad_read;
+            _byteCount = 0;
+        }
+        else if (bytesRead == 0)
+        {
+            _lastOp = no_input;
+            _byteCount = 0;
+        }
+        else
+        {
+            _lastOp = success_read;
+            _byteCount = bytesRead;
+        }
+    }
+    else
+    {
+        _lastOp = no_device;
+        _byteCount = 0;
+    }
 }
 void io_device::_writeBuffer(const void* buffer,dword length)
 {
+    if (_output != NULL)
+    {
+        DWORD bytesWrote;
+        if ( !::WriteFile(_output->interpret_as<HANDLE>(),buffer,length,&bytesWrote) )
+        {
+            _lastOp = bad_write;
+            _byteCount = 0;
+        }
+        else if (bytesWrote == 0)
+        {
+            _lastOp = no_output;
+            _byteCount = 0;
+        }
+        else
+        {
+            _lastOp = success_write;
+            _byteCount = bytesWrote;
+
+        }
+    }
+    else
+    {
+        _lastOp = no_device;
+        _byteCount = 0;
+    }
 }

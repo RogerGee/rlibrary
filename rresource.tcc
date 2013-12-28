@@ -17,27 +17,22 @@ rtypes::resource<BYTE_CNT>::resource(rtypes::byte fillValue)
 template<size_t BYTE_CNT>
 rtypes::resource<BYTE_CNT>::resource(void* defaultValue)
 {
-    for (size_t i = 0;i<BYTE_CNT;i++)
-    {
-        if (i < sizeof(void*))
-            _idData[i] = (reinterpret_cast<size_t>(defaultValue) >> 8*i) & 0xff;
-        else
-            _idData[i] = 0;
-    }
+    if (BYTE_CNT >= sizeof(defaultValue))
+        reinterpret_cast<void*&>(_idData) = defaultValue;
+    else
+        throw bad_resource_assignment_error();
 }
 
 template<size_t BYTE_CNT>
 template<typename T>
 rtypes::resource<BYTE_CNT>& rtypes::resource<BYTE_CNT>::assign(const T& item)
 {
-    for (size_t i = 0;i<BYTE_CNT;i++)
+    if (BYTE_CNT >= sizeof(T))
     {
-        if (i < sizeof(T))
-            _idData[i] = (size_t(item) >> 8*i) & 0xff;
-        else
-            _idData[i] = 0;
-    }       
-    return *this;
+        reinterpret_cast<T&>(*_idData) = item;
+        return *this;
+    }
+    throw bad_resource_assignment_error();
 }
 
 template<size_t BYTE_CNT>

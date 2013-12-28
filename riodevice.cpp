@@ -26,6 +26,13 @@ using namespace rtypes;
 
 // define target-independent code
 
+// rtypes::io_resource
+io_resource::io_resource(void* defaultValue)
+    : _MyBase(defaultValue)
+{
+    _reference = 0;
+}
+
 // rtypes::io_device
 io_device::io_device()
 {
@@ -99,8 +106,8 @@ str io_device::read(dword bytesToRead)
 bool io_device::open(const char* deviceID)
 {
     if (_input!=NULL || _output!=NULL)
-        return false; // must close first
-    _openEvent(deviceID,all_access);
+        return false; // must close both first
+    _openEvent(deviceID,all_access); // might open both or just one
     if (_input!=NULL || _output!=NULL)
     {
         _lastOp = no_operation;
@@ -111,8 +118,8 @@ bool io_device::open(const char* deviceID)
 bool io_device::open_input(const char* deviceID)
 {
     if (_input != NULL)
-        return false; // must close first
-    _openEvent(deviceID,read_access);
+        return false; // must close input first
+    _openEvent(deviceID,read_access); // should only open input
     if (_input != NULL)
     {
         _lastOp = no_operation;
@@ -123,9 +130,9 @@ bool io_device::open_input(const char* deviceID)
 bool io_device::open_output(const char* deviceID)
 {
     if (_output != NULL)
-        return false; // must close first
+        return false; // must close output first
     _openEvent(deviceID,write_access);
-    if (_output != NULL)
+    if (_output != NULL) // should only open output
     {
         _lastOp = no_operation;
         return true;
@@ -281,4 +288,8 @@ bool io_device::is_valid_input() const
 bool io_device::is_valid_output() const
 {
     return _output != NULL;
+}
+/* static */ int& io_device::_ResourceRef(io_resource* pres)
+{
+    return pres->_reference;
 }
