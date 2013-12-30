@@ -4,7 +4,7 @@ template<typename T>
 void rtypes::list<T>::swap(_Self& obj)
 {
     T tmp; // in case T has a lengthy constructor, I place it here so it runs once
-    iterator        thisIter = begin(),
+    iterator thisIter = begin(),
         thatIter = obj.begin(),
         thisEnd = end(),
         thatEnd = obj.end();
