@@ -7,12 +7,12 @@
 namespace rtypes
 {
     template<typename T>
-    class dynarray : protected rallocatorEx<T>
+    class dynamic_array : protected rallocatorEx<T>
     {
     public:
-        dynarray();
-        explicit dynarray(dword iniSize);
-        dynarray(dword iniSize,const T& defaultValue);
+        dynamic_array();
+        explicit dynamic_array(dword iniSize);
+        dynamic_array(dword iniSize,const T& defaultValue);
 
         T& operator [](dword index);
         const T& operator [](dword index) const;
@@ -26,7 +26,7 @@ namespace rtypes
 
         void push_back(const T& element);
         T& pop_back();
-        
+
         T& operator ++();
         T& operator ++(int);
 

@@ -34,30 +34,61 @@ file_entry::file_entry()
     fileSize = 0;
     fileMode = 0;
 }
+file_entry::file_entry(const char* pname)
+{
+    _load(pname);
+}
+file_entry::file_entry(const generic_string& sname)
+{
+    _load(sname.c_str());
+}
 
 // rtypes::filename
 path::path()
 {
 }
-path::path(const str& pathName)
+path::path(const char* pathName)
 {
     _parts[0] = pathName;
     _checkParts();
 }
-path::path(const str& pathName,const str& relativeTo)
+path::path(const generic_string& pathName)
+{
+    _parts[0] = pathName;
+    _checkParts();
+}
+path::path(const char* pathName,const char* relativeTo)
 {
     _parts[0] = pathName;
     _parts[1] = relativeTo;
     _checkParts();
 }
-path& path::operator =(const str& pathName)
+path::path(const generic_string& pathName,const generic_string& relativeTo)
+{
+    _parts[0] = pathName;
+    _parts[1] = relativeTo;
+    _checkParts();
+}
+path& path::operator =(const char* pathName)
 {
     _parts[0] = pathName;
     _parts[1].clear();
     _checkParts();
     return *this;
 }
-path& path::operator +=(const str& component)
+path& path::operator =(const generic_string& pathName)
+{
+    _parts[0] = pathName;
+    _parts[1].clear();
+    _checkParts();
+    return *this;
+}
+path& path::operator +=(const char* component)
+{
+    str item(component);
+    return *this += item;
+}
+path& path::operator +=(const generic_string& component)
 {
     if (component.size() > 0)
     {
@@ -77,32 +108,11 @@ path& path::operator +=(const path& p)
 {
     return this->operator +=(p._parts[0]);
 }
-bool path::copy(const path& p,bool moveContents,bool overwrite) const
+bool path::copy(const char* pname,bool moveContents,bool overwrite) const
 {
-    // check to make sure this path refers to a directory in the filesystem
-    if ( !exists() )
-    {
-        rlib_last_error::set<does_not_exist_error>();
-        return false;
-    }
-    // check destination existence and overwrite rules
-    if ( !p.exists() )
-    {
-        if ( !p.make() )
-            return false;
-    }
-    else if (!overwrite)
-    {
-        rlib_last_error::set<already_exists_error>();
-        return false;
-    }
-    if (moveContents)
-    {
-        
-    }
-    return true;
+    return copy(path(pname),moveContents,overwrite);
 }
-bool path::copy(const str& name,bool moveContents,bool overwrite) const
+bool path::copy(const generic_string& name,bool moveContents,bool overwrite) const
 {
     return copy(path(name),moveContents,overwrite);
 }
@@ -115,7 +125,7 @@ str path::get_name() const
 str path::get_top_name() const
 {
     str r;
-    const str& s = _parts[0].length()==0 ? _parts[1] : _parts[0];
+    const generic_string& s = _parts[0].length()==0 ? _parts[1] : _parts[0];
     dword i = s.length()>0 ? s.length()-1 : 0;
     while (i>0 && s[i]!=PATH_SEP) // advance iterator to next separator (right-to-left)
         --i;
@@ -155,18 +165,34 @@ str path::get_parent_name() const
     abspath.truncate(sz==0 ? 1 : sz);
     return abspath;
 }
-void path::set_name(const str& pathName)
+void path::set_name(const char* pathName)
 {
     _parts[0] = pathName;
     _checkParts();
 }
-void path::set_name(const str& pathName,const str& relativeTo)
+void path::set_name(const generic_string& pathName)
+{
+    _parts[0] = pathName;
+    _checkParts();
+}
+void path::set_name(const char* pathName,const char* relativeTo)
 {
     _parts[0] = pathName;
     _parts[1] = relativeTo;
     _checkParts();
 }
-void path::set_full_name(const str& n)
+void path::set_name(const generic_string& pathName,const generic_string& relativeTo)
+{
+    _parts[0] = pathName;
+    _parts[1] = relativeTo;
+    _checkParts();
+}
+void path::set_full_name(const char* pn)
+{
+    str name(pn);
+    set_full_name(name);
+}
+void path::set_full_name(const generic_string& n)
 {
     // take the top component
     // and put it as the relative part
@@ -181,7 +207,12 @@ void path::set_full_name(const str& n)
         _parts[1].push_back(n[j]);
     _checkParts();
 }
-void path::set_top_name(const str& n)
+void path::set_top_name(const char* pn)
+{
+    str name(pn);
+    set_top_name(name);
+}
+void path::set_top_name(const generic_string& n)
 {
     str& s = _parts[0].length()==0 ? _parts[1] : _parts[0];
     dword sz = s.size()-1;
@@ -218,11 +249,11 @@ file_entry path::get_entry_info() const
         return entry;
     throw does_not_exist_error();
 }
-void path::append_name(const str& n)
+void path::append_name(const generic_string& n)
 {
     this->operator +=(n);
 }
-void path::append_before(const str& n)
+void path::append_before(const generic_string& n)
 {
     str top = get_top_name();
     str par = get_parent_name();
@@ -245,13 +276,19 @@ void path::append_before(const str& n)
 filename::filename()
 {
 }
-filename::filename(const str& name)
+filename::filename(const char* name)
 {
     str source(name);
     _trunLeader(source);
     _path = source;
 }
-filename::filename(const str& pathLocation,const str& name)
+filename::filename(const generic_string& name)
+{
+    str source(name);
+    _trunLeader(source);
+    _path = source;
+}
+filename::filename(const char* pathLocation,const char* name)
     : _path(pathLocation)
 {
     str source = name;
@@ -259,7 +296,23 @@ filename::filename(const str& pathLocation,const str& name)
     // should be a relative path string, else an error will be thrown
     _path.append_name(source);
 }
-filename::filename(const path& pathLocation,const str& name)
+filename::filename(const generic_string& pathLocation,const generic_string& name)
+    : _path(pathLocation)
+{
+    str source = name;
+    _trunLeader(source);
+    // should be a relative path string, else an error will be thrown
+    _path.append_name(source);
+}
+filename::filename(const path& pathLocation,const char* name)
+    : _path(pathLocation)
+{
+    str source(name);
+    _trunLeader(source);
+    // should be a relative path string, else an error will be thrown
+    _path.append_name(source);    
+}
+filename::filename(const path& pathLocation,const generic_string& name)
     : _path(pathLocation)
 {
     str source(name);
@@ -267,7 +320,14 @@ filename::filename(const path& pathLocation,const str& name)
     // should be a relative path string, else an error will be thrown
     _path.append_name(source);
 }
-filename& filename::operator =(const str& s)
+filename& filename::operator =(const char* ps)
+{
+    str source(ps);
+    _trunLeader(source);
+    _path = source;
+    return *this;
+}
+filename& filename::operator =(const generic_string& s)
 {
     str source(s);
     _trunLeader(source);
@@ -281,20 +341,28 @@ bool filename::has_extension() const
 bool filename::copy(const path& toDirectory,bool overwrite) const
 {
     filename fi(toDirectory,_name);
-    return copy(fi.get_full_name(),overwrite);
+    return copy(fi.get_full_name().c_str(),overwrite);
+}
+bool filename::copy(const generic_string& toFile,bool overwrite) const
+{
+    return copy(toFile.c_str(),overwrite);
 }
 bool filename::copy(const filename& toFile,bool overwrite) const
 {
-    return copy(toFile.get_full_name(),overwrite);
+    return copy(toFile.get_full_name().c_str(),overwrite);
 }
 bool filename::rename(const path& p,bool keepNewName,bool overwrite)
 {
     filename fi(p,_name);
-    return rename(fi.get_full_name(),keepNewName,overwrite);
+    return rename(fi.get_full_name().c_str(),keepNewName,overwrite);
+}
+bool filename::rename(const generic_string& name,bool keepNewName,bool overwrite)
+{
+    return rename(name.c_str(),keepNewName,overwrite);
 }
 bool filename::rename(const filename& name,bool keepNewName,bool overwrite)
 {
-    return rename(name.get_full_name(),keepNewName,overwrite);
+    return rename(name.get_full_name().c_str(),keepNewName,overwrite);
 }
 str filename::get_name() const
 {
@@ -365,11 +433,27 @@ str filename::get_relative_name(const path& p) const
     (fn += PATH_SEP) += _name;
     return fn;
 }
-void filename::set_name(const str& name)
+void filename::set_name(const char* name)
 {
     _name = name;
 }
-void filename::set_name(const str& name,const str& extension)
+void filename::set_name(const generic_string& name)
+{
+    _name = name;
+}
+void filename::set_name(const char* name,const char* extension)
+{
+    // treat extension as a suffix
+    dword start = 0;
+    _name = name;
+    // move past any dots before the extension
+    while (extension[start] && extension[start]=='.')
+        ++start;
+    _name += '.';
+    while (extension[start])
+        _name += extension[start++];
+}
+void filename::set_name(const generic_string& name,const generic_string& extension)
 {
     // treat extension as a suffix
     dword start = 0;
@@ -381,7 +465,12 @@ void filename::set_name(const str& name,const str& extension)
     for (;start<extension.length();start++)
         _name += extension[start];
 }
-void filename::set_namex(const str& name)
+void filename::set_namex(const char* name)
+{
+    str sname(name);
+    set_namex(sname);
+}
+void filename::set_namex(const generic_string& name)
 {
     // set just the name part of 'name'
     // the extension is the last .suffix
@@ -403,7 +492,12 @@ void filename::set_namex(const str& name)
     else // no name specified
         _name.clear();
 }
-void filename::set_extension(const str& name)
+void filename::set_extension(const char* name)
+{
+    str sname(name);
+    set_extension(sname);
+}
+void filename::set_extension(const generic_string& name)
 {
     // the extension in 'name' is the last
     // .suffix
@@ -431,7 +525,17 @@ void filename::set_extension(const str& name)
         }
     }
 }
-void filename::set_full_name(const str& name)
+void filename::set_full_name(const char* name)
+{
+    // the last component of 'name' is assumed
+    // to the filename; everything before is assumed
+    // to be the path; getting the component is system
+    // specific due to root directory issues
+    str cpy = name;
+    _trunLeader(cpy);
+    _path = cpy;    
+}
+void filename::set_full_name(const generic_string& name)
 {
     // the last component of 'name' is assumed
     // to the filename; everything before is assumed
@@ -453,7 +557,13 @@ file_entry filename::get_entry_info() const
     throw does_not_exist_error();
 }
 
-path rtypes::operator +(const path& p,const str& s)
+path rtypes::operator +(const path& p,const char* ps)
+{
+    path cpy(p);
+    cpy += ps;
+    return cpy;
+}
+path rtypes::operator +(const path& p,const generic_string& s)
 {
     path cpy(p);
     cpy += s;

@@ -47,7 +47,13 @@ bool stream_buffer::_peekInput(char& var,dword i) const
     // else no input was available from source
     return false;
 }
-void stream_buffer::_pushBackOutputString(const str& s)
+void stream_buffer::_pushBackOutputString(const char* pcstr)
+{
+    dword i = 0;
+    while (pcstr[i])
+        _bufOut.push( pcstr[i++] );
+}
+void stream_buffer::_pushBackOutputString(const generic_string& s)
 {
     for (dword i = 0;i<s.size();i++)
         _bufOut.push(s[i]);
@@ -147,7 +153,7 @@ void rstream::add_extra_delimiter(char c)
     // add a new delimiter to the basic whitespace set
     _delimits.insert(c);
 }
-void rstream::add_extra_delimiter(const str& delimiterString)
+void rstream::add_extra_delimiter(const generic_string& delimiterString)
 {
     // add multiple delimiters with one call
     for (dword i = 0;i<delimiterString.length();i++)
@@ -157,7 +163,7 @@ void rstream::remove_extra_delimiter(char c)
 {
     _delimits.remove(c);
 }
-void rstream::remove_extra_delimiter(const str& delimiterString)
+void rstream::remove_extra_delimiter(const generic_string& delimiterString)
 {
     // attempt to remove all delimiters in the string
     for (dword i = 0;i<delimiterString.length();i++)
@@ -176,7 +182,7 @@ bool rstream::delimit_whitespace(bool yes)
     _delimitWhitespace = yes;
     return b;
 }
-void rstream::getline(str& var)
+void rstream::getline(generic_string& var)
 {
     var.clear();
     char input;
@@ -197,7 +203,7 @@ void rstream::getline(str& var)
         var.push_back(input);
     }
 }
-void rstream::putline(const str& text)
+void rstream::putline(const generic_string& text)
 {
     _pushBackOutputString(text);
     _pushBackOutput('\n'); //add a newline
@@ -500,7 +506,7 @@ rstream& rstream::operator >>(void*& var)
     var = reinterpret_cast<void*> (_fromString<dword> (s,_lastSuccess));
     return *this;
 }
-rstream& rstream::operator >>(str& var)
+rstream& rstream::operator >>(generic_string& var)
 {
     var.clear(); // overwrite var
     char input;
@@ -692,7 +698,7 @@ rstream& rstream::operator <<(const char* cs)
         _outDevice();
     return *this;
 }
-rstream& rstream::operator <<(const str& s)
+rstream& rstream::operator <<(const generic_string& s)
 {
     _pushBackOutputString(s);
     if (!_doesBuffer)
@@ -1001,7 +1007,7 @@ rbinstream& rbinstream::operator >>(void*& var)
     var = reinterpret_cast<void*> (_fromString<dword>(data,_lastSuccess));
     return *this;
 }
-rbinstream& rbinstream::operator >>(str& var)
+rbinstream& rbinstream::operator >>(generic_string& var)
 {
     // read the capacity of the string object
     dword i;
@@ -1118,7 +1124,7 @@ rbinstream& rbinstream::operator <<(const char* cs)
         _outDevice();
     return *this;
 }
-rbinstream& rbinstream::operator <<(const str& s)
+rbinstream& rbinstream::operator <<(const generic_string& s)
 {
     _pushBackOutputString(s);
     if (!_doesBuffer)

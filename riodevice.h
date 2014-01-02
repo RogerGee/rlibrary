@@ -68,12 +68,12 @@ namespace rtypes
 
         io_device& operator =(const io_device&); // creates a copy of the current IO context of the specified device
 
-        void read(str& buffer) // reads the capacity of the specified string object from the device
+        void read(generic_string& buffer) // reads the capacity of the specified string object from the device
         { _readBuffer(&buffer[0],buffer.capacity()); }
         void read(void* buffer,dword bytesToRead) // reads the specified amount of bytes from the device into the specified buffer
         { _readBuffer(buffer,bytesToRead); }
         str read(dword bytesToRead = 0); // reads the specified number of bytes from the device into a string buffer and returns the result
-        void write(const str& buffer) // writes the size of the specified string buffer to the device
+        void write(const generic_string& buffer) // writes the size of the specified string buffer to the device
         { _writeBuffer(buffer.c_str(),buffer.size()); }
         void write(const void* buffer,dword length) // writes the specified buffer to the device
         { _writeBuffer(buffer,length); }
@@ -124,7 +124,7 @@ namespace rtypes
             io_access_flag accessKind,
             dword** arguments = NULL,
             dword argumentCount = 0) = 0; // opens a device in a system specific manner
-        virtual void _readAll(str& buffer) = 0; // reads all available data from the device into the specified buffer, resizing as necessary
+        virtual void _readAll(generic_string& buffer) = 0; // reads all available data from the device into the specified buffer, resizing as necessary
         virtual void _closeEvent(io_access_flag shutdownKind) = 0; // called whenever a device is completely shutdown
     };
 }

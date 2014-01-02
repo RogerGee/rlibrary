@@ -57,7 +57,8 @@ namespace rtypes
         { _bufOut.push(c); }
         /* Inserts the specified string into the output buffer
          */
-        void _pushBackOutputString(const str&);
+        void _pushBackOutputString(const char*);
+        void _pushBackOutputString(const generic_string&);
                 
         /* _inDevice() const
          * This member function controls how input is read into the stream from the device;
@@ -162,9 +163,9 @@ namespace rtypes
                 
         // delimit operations
         void add_extra_delimiter(char);
-        void add_extra_delimiter(const str& delimiterString);
+        void add_extra_delimiter(const generic_string& delimiterString);
         void remove_extra_delimiter(char c);
-        void remove_extra_delimiter(const str& delimiterString);
+        void remove_extra_delimiter(const generic_string& delimiterString);
         void clear_extra_delimiters();
         bool delimit_whitespace(bool yes);
         str get_last_delimited_space() const
@@ -177,9 +178,9 @@ namespace rtypes
         { _nwidth = nwidth; }
                 
         // put string followed by endline
-        void putline(const str&);
+        void putline(const generic_string&);
         // get string delimited by endline (does not include endline character(s))
-        void getline(str&);
+        void getline(generic_string&);
                 
         // input operator overloads for basic types
         rstream& operator >>(bool&);
@@ -195,7 +196,7 @@ namespace rtypes
         rstream& operator >>(qword&);
         rstream& operator >>(double&);
         rstream& operator >>(void*&);
-        rstream& operator >>(str&);
+        rstream& operator >>(generic_string&);
                 
         // output operator overloads for basic types
         rstream& operator <<(bool);
@@ -212,7 +213,7 @@ namespace rtypes
         rstream& operator <<(const double&);
         rstream& operator <<(const void*);
         rstream& operator <<(const char*);
-        rstream& operator <<(const str&);
+        rstream& operator <<(const generic_string&);
         rstream& operator <<(rlib_numeric_rep_flag);
     private:
         rlib_numeric_rep_flag _repFlag; // state flag; the current representation for numeric=>string conversions
@@ -260,7 +261,7 @@ namespace rtypes
         rbinstream& operator >>(qword&);
         rbinstream& operator >>(double&);
         rbinstream& operator >>(void*&);
-        rbinstream& operator >>(str&);
+        rbinstream& operator >>(generic_string&);
                 
         //output operations
         rbinstream& operator <<(bool);
@@ -277,7 +278,7 @@ namespace rtypes
         rbinstream& operator <<(const double&);
         rbinstream& operator <<(const void*);
         rbinstream& operator <<(const char*);
-        rbinstream& operator <<(const str&);
+        rbinstream& operator <<(const generic_string&);
         rbinstream& operator <<(endianness);
     private:
         endianness _endianFlag;

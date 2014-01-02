@@ -40,7 +40,7 @@ namespace rtypes
         stack<io_resource*> _redirError;
 
         virtual void _openEvent(const char*,io_access_flag,dword**,dword);
-        virtual void _readAll(str&);
+        virtual void _readAll(generic_string&);
         virtual void _closeEvent(io_access_flag);
     };
 }

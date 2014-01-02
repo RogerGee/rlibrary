@@ -18,8 +18,10 @@ namespace rtypes
         rtype_string();
         virtual ~rtype_string();
 
-        CharType& operator [](dword index);
-        const CharType& operator [](dword index) const;
+        CharType& operator [](dword index)
+        { return _access(index); }
+        const CharType& operator [](dword index) const
+        { return _buffer->data[index]; }
 
         // operators (invoked by derived class versions)
         rtype_string& operator =(CharType);
@@ -38,17 +40,17 @@ namespace rtypes
         void reset(); // reduce the actual allocation size
         bool truncate(dword desiredSize);
         void resize(dword NewSize);
-        
+
         // string info
-        const CharType* c_str() const 
+        const CharType* c_str() const
         { return _buffer->data; }
-        dword size() const 
+        dword size() const
         { return _buffer->size-1; }
-        dword length() const 
+        dword length() const
         { return _buffer->size-1; }
-        dword capacity() const 
+        dword capacity() const
         { return _buffer->size+_buffer->extra-1; }
-        dword allocation_size() const 
+        dword allocation_size() const
         { return _buffer->size+_buffer->extra; }
     protected:
         struct _StringBuffer
@@ -74,10 +76,15 @@ namespace rtypes
         // virtual string interface
         virtual void _allocate(dword desiredSize) = 0;
         virtual void _deallocate() = 0;
-        virtual void _copy(const CharType*,dword) = 0;
+        virtual CharType& _access(dword i)
+        { return _buffer->data[i]; }
 
-        void _copy(const CharType*); // (calls _copy() overload)
+        void _copy(const CharType*);
+        void _copy(const CharType*,dword);
         void _nullTerm();
+
+        static const _StringBuffer* _getBuffer(const rtype_string& object)
+        { return object._buffer; }
     };
 
     /* deep_string
@@ -108,10 +115,10 @@ namespace rtypes
         using _Base::_buffer;
         using _Base::_copy;
         using _Base::_nullTerm;
+        using _Base::_getBuffer;
     private:
         virtual void _allocate(dword desiredSize);
         virtual void _deallocate();
-        virtual void _copy(const CharType*,dword);
 
         typename _Base::_StringBuffer _buf;
     };
@@ -143,6 +150,7 @@ namespace rtypes
         using _Base::_buffer;
         using _Base::_copy;
         using _Base::_nullTerm;
+        using _Base::_getBuffer;
     private:
         struct _StringBufferEx : _Base::_StringBuffer
         {
@@ -153,7 +161,7 @@ namespace rtypes
 
         virtual void _allocate(dword desiredSize);
         virtual void _deallocate();
-        virtual void _copy(const CharType*,dword);        
+        virtual CharType& _access(dword);
     };
 
     // comparison operators
@@ -208,10 +216,12 @@ namespace rtypes
     // typedefs for common string types
     typedef deep_string<char> str;
     typedef deep_string<wchar_t> wstr;
+    typedef shallow_string<char> string;
+    typedef shallow_string<wchar_t> wstring;
 
     // typedefs for generic common string types
-    typedef rtype_string<char> generic_str;
-    typedef rtype_string<wchar_t> generic_wstr;
+    typedef rtype_string<char> generic_string;
+    typedef rtype_string<wchar_t> generic_wstring;
 }
 
 // include out-of-line implementation

@@ -38,24 +38,6 @@ namespace {
 }
 
 // rtypes::file_entry
-file_entry::file_entry(const str& filePathName)
-{
-    struct stat st;
-    if ( ::stat(filePathName.c_str(),&st)==0 ) // success
-    {
-        name = filePathName;
-        set_timestamp_from_time(changeTime,st.st_ctime);
-        set_timestamp_from_time(lastAccessTime,st.st_atime);
-        set_timestamp_from_time(lastModifyTime,st.st_mtime);
-        fileSize = st.st_size;
-        fileMode = st.st_mode;
-    }
-    else // failure
-    {
-        // throw common errors
-        rlib_last_error::switch_throw();
-    }
-}
 file_entry_kind file_entry::get_kind() const
 {
     switch (fileMode&S_IFMT)
@@ -68,6 +50,24 @@ file_entry_kind file_entry::get_kind() const
         return kind_directory;
     }
     return kind_something_else;
+}
+void file_entry::_load(const char* pname)
+{
+    struct stat st;
+    if ( ::stat(pname,&st) == 0 ) // success
+    {
+        name = pname;
+        set_timestamp_from_time(changeTime,st.st_ctime);
+        set_timestamp_from_time(lastAccessTime,st.st_atime);
+        set_timestamp_from_time(lastModifyTime,st.st_mtime);
+        fileSize = st.st_size;
+        fileMode = st.st_mode;
+    }
+    else // failure
+    {
+        // throw common errors
+        rlib_last_error::switch_throw();
+    }
 }
 
 // rtypes::path
@@ -151,6 +151,66 @@ bool path::make(bool createSubDirectories) const
     }
     return true;
 }
+bool path::copy(const path& p,bool moveContents,bool overwrite) const
+{
+    // check to make sure this path refers to a directory in the filesystem
+    if ( !exists() )
+    {
+        rlib_last_error::set<does_not_exist_error>();
+        return false;
+    }
+    // check destination existence and overwrite rules
+    if ( !p.exists() )
+    {
+        if ( !p.make() )
+            return false;
+    }
+    else if (!overwrite)
+    {
+        rlib_last_error::set<already_exists_error>();
+        return false;
+    }
+    if (moveContents)
+    {
+        str thisName = get_full_name();
+        DIR* direct = ::opendir( thisName.c_str() );
+        if (direct != NULL)
+        {
+            while (true)
+            {
+                dirent* dirEntry = ::readdir(direct);
+                if (dirEntry == NULL)
+                    break;
+                if (dirEntry->d_type==DT_DIR && (rutil_strcmp(dirEntry->d_name,CUR_DIR) || rutil_strcmp(dirEntry->d_name,PREV_DIR)))
+                    continue;
+                // item is not . or ..
+                // attempt the copy but do not care about success
+                // (the reasoning being that success and failure could both happen
+                // depending on things such as file permissions, ETC.)
+                if (dirEntry->d_type == DT_DIR)
+                {
+                    // recursively copy directory contents
+                    path rpath(dirEntry->d_name,thisName.c_str()); // construct path relative-to this path
+                    rpath.copy(p+dirEntry->d_name,moveContents,overwrite);
+                }
+                else if (dirEntry->d_type == DT_REG)
+                {
+                    filename fn(*this,dirEntry->d_name);
+                    fn.copy(p,overwrite);
+                }
+            }
+            ::closedir(direct);
+        }
+        else
+        {
+            // set generic errors
+            rlib_last_error::switch_set();
+            return false;
+        }
+        
+    }
+    return true;
+}
 bool path::rename(const path& p,bool keepNewName,bool overwrite)
 {
     // check to see if the resource exists as a directory
@@ -180,7 +240,36 @@ bool path::rename(const path& p,bool keepNewName,bool overwrite)
         *this = p;
     return true;
 }
-bool path::rename(const str& s,bool keepNewName,bool overwrite)
+bool path::rename(const char* ps,bool keepNewName,bool overwrite)
+{
+    // check to see if the resource exists as a directory
+    if ( !exists() )
+    {
+        rlib_last_error::set<does_not_exist_error>();
+        return false;
+    }
+    // check overwrite rule
+    if (!overwrite && /*does exist*/::access(ps,F_OK)==0)
+    {
+        rlib_last_error::set<already_exists_error>();
+        return false;
+    }
+    // attempt to rename
+    if ( ::rename( get_full_name().c_str(),ps ) != 0 )
+    {
+        // set specific errors
+        if (errno==EINVAL || errno==EISDIR)
+            rlib_last_error::set<bad_path_error>();
+        // set generic errors
+        else
+            rlib_last_error::switch_set();
+        return false;
+    }
+    if (keepNewName)
+        *this = ps;
+    return true;
+}
+bool path::rename(const generic_string& s,bool keepNewName,bool overwrite)
 {
     // check to see if the resource exists as a directory
     if ( !exists() )
@@ -553,7 +642,7 @@ void path::_checkParts()
     outDir.truncate(i);
     return outDir;
 }
-/* static */str path::_getRel(const str& origin,const str& destination)
+/* static */str path::_getRel(const generic_string& origin,const generic_string& destination)
 {
     // get the origin path as it would appear relative to the specified
     // destination path string; assume that both path strings are fully
@@ -653,7 +742,7 @@ bool filename::create() const
     ::close(fd);
     return true;
 }
-bool filename::copy(const str& toFile,bool overwrite) const
+bool filename::copy(const char* pfname,bool overwrite) const
 {
     static const dword BUF_SIZE = 65000;
     byte* buffer;
@@ -667,7 +756,7 @@ bool filename::copy(const str& toFile,bool overwrite) const
         return false;
     }
     // open the new file; overwrite if specified and necessary
-    fnew = ::open(toFile.c_str(),O_CREAT|(overwrite?O_EXCL:O_TRUNC)|O_WRONLY,0664);
+    fnew = ::open(pfname,O_CREAT|(overwrite?O_EXCL:O_TRUNC)|O_WRONLY,0664);
     if (fnew == -1)
     {
         rlib_last_error::switch_set();
@@ -696,7 +785,7 @@ bool filename::copy(const str& toFile,bool overwrite) const
     ::close(fnew);
     return success;
 }
-bool filename::rename(const str& name,bool keepNewName,bool overwrite)
+bool filename::rename(const char* pfname,bool keepNewName,bool overwrite)
 {
     // check to see if the file exists as a regular file
     if ( !exists() )
@@ -705,12 +794,12 @@ bool filename::rename(const str& name,bool keepNewName,bool overwrite)
         return false;
     }
     // check overwrite condition
-    if (!overwrite && /*does exist*/::access(name.c_str(),F_OK)==0)
+    if (!overwrite && /*does exist*/::access(pfname,F_OK)==0)
     {
         rlib_last_error::set<already_exists_error>();
         return false;
     }
-    if ( ::rename( get_full_name().c_str(),name.c_str() ) != 0 )
+    if ( ::rename( get_full_name().c_str(),pfname ) != 0 )
     {
         // set specific errors
         if (errno==EINVAL || errno==EISDIR)
@@ -722,7 +811,7 @@ bool filename::rename(const str& name,bool keepNewName,bool overwrite)
     }
     if (keepNewName)
     {
-        str s = name;
+        str s = pfname;
         _trunLeader(s);
         _path = s;
     }

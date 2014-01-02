@@ -2,7 +2,7 @@
 using namespace std;
 using namespace rtypes;
 
-istream& rtypes::operator >>(istream& stream,str& s)
+istream& rtypes::operator >>(istream& stream,generic_string& s)
 {
     istream::sentry sen(stream);
     if (sen)

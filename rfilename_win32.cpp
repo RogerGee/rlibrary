@@ -46,14 +46,25 @@ namespace {
 }
 
 // rtypes::file_entry
-file_entry::file_entry(const str& filePathName)
+file_entry_kind file_entry::get_kind() const
+{
+    if (fileMode != INVALID_FILE_ATTRIBUTES)
+    {
+        if (fileMode & FILE_ATTRIBUTE_DIRECTORY)
+            return kind_directory;
+        else
+            return kind_regular_file;
+    }
+    return kind_something_else;
+}
+void file_entry::_load(const char* pname)
 {
     // open the file for reading in order to obtain information about it
-    HANDLE hFile = ::CreateFile(filePathName.c_str(),GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
+    HANDLE hFile = ::CreateFile(pname,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
     if (hFile != INVALID_HANDLE_VALUE) // file opened successfully
     {
         BY_HANDLE_FILE_INFORMATION info;
-        name = filePathName;
+        name = pname;
         rutil_def_memory(&changeTime,sizeof(timestamp));
         // try to obtain file information
         if ( ::GetFileInformationByHandle(hFile,&info) )
@@ -84,17 +95,6 @@ file_entry::file_entry(const str& filePathName)
         // throw generic errors
         rlib_last_error::switch_throw();
     }
-}
-file_entry_kind file_entry::get_kind() const
-{
-    if (fileMode != INVALID_FILE_ATTRIBUTES)
-    {
-        if (fileMode & FILE_ATTRIBUTE_DIRECTORY)
-            return kind_directory;
-        else
-            return kind_regular_file;
-    }
-    return kind_something_else;
 }
 
 // rtypes::path
@@ -166,6 +166,31 @@ bool path::make(bool createSubDirectories) const
     }
     return true;
 }
+bool path::copy(const path& p,bool moveContents,bool overwrite) const
+{
+    // check to make sure this path refers to a directory in the filesystem
+    if ( !exists() )
+    {
+        rlib_last_error::set<does_not_exist_error>();
+        return false;
+    }
+    // check destination existence and overwrite rules
+    if ( !p.exists() )
+    {
+        if ( !p.make() )
+            return false;
+    }
+    else if (!overwrite)
+    {
+        rlib_last_error::set<already_exists_error>();
+        return false;
+    }
+    if (moveContents)
+    {
+        
+    }
+    return true;
+}
 bool path::rename(const path& p,bool keepNewName,bool overwrite)
 {
     // check to see if the resource exists as a directory
@@ -191,7 +216,31 @@ bool path::rename(const path& p,bool keepNewName,bool overwrite)
         *this = p;
     return true;
 }
-bool path::rename(const str& name,bool keepNewName,bool overwrite)
+bool path::rename(const char* pname,bool keepNewName,bool overwrite)
+{
+    // check to see if the resource exists as a directory
+    if ( !exists() )
+    {
+        rlib_last_error::set<does_not_exist_error>();
+        return false;
+    }
+    // check overwrite rule
+    if ( !overwrite && /*does exist*/::GetFileAttributes( pname )!=INVALID_FILE_ATTRIBUTES )
+    {
+        rlib_last_error::set<already_exists_error>();
+        return false;
+    }
+    // attempt to rename
+    if ( !::MoveFile( get_full_name().c_str(),pname ) )
+    {
+        rlib_last_error::switch_set();
+        return false;
+    }
+    if (keepNewName)
+        *this = pname;
+    return true;
+}
+bool path::rename(const generic_string& name,bool keepNewName,bool overwrite)
 {
     // check to see if the resource exists as a directory
     if ( !exists() )
@@ -260,7 +309,8 @@ bool path::erase(bool failOnSubDirectories)
             else
             {
                 // base case: delete each file (non-directory item)
-                
+                if ( !filename(*this,fdata.cFileName).deletef() )
+                    return false;
             }
         } while ( ::FindNextFile(hFound,&fdata) != 0 );
         ::FindClose(hFound);
@@ -513,7 +563,7 @@ void path::_checkParts()
         throw rlib_error( int(::GetLastError()) );
     return curDir;
 }
-/* static */ str path::_getRel(const str& origin,const str& destination)
+/* static */ str path::_getRel(const generic_string& origin,const generic_string& destination)
 {
     // get the origin path as it would appear relative to the specified
     // destination path string; assume that both path strings are fully
@@ -609,7 +659,7 @@ bool filename::create() const
     ::CloseHandle(hFile);
     return true;
 }
-bool filename::copy(const str& toFile,bool overwrite) const
+bool filename::copy(const char* pfname,bool overwrite) const
 {
     static const dword BUF_SIZE = 65000;
     byte* buffer;
@@ -623,7 +673,7 @@ bool filename::copy(const str& toFile,bool overwrite) const
         return false;
     }
     // open the destination file; overwrite if specified and necessary
-    hDest = ::CreateFile(get_full_name().c_str(),GENERIC_WRITE,FILE_SHARE_READ,NULL,(overwrite?CREATE_ALWAYS:CREATE_NEW),FILE_ATTRIBUTE_NORMAL,NULL);
+    hDest = ::CreateFile(pfname,GENERIC_WRITE,FILE_SHARE_READ,NULL,(overwrite?CREATE_ALWAYS:CREATE_NEW),FILE_ATTRIBUTE_NORMAL,NULL);
     if (hDest == INVALID_HANDLE_VALUE)
     {
         rlib_last_error::switch_set();
@@ -651,7 +701,7 @@ bool filename::copy(const str& toFile,bool overwrite) const
     ::CloseHandle(hDest);
     return success;
 }
-bool filename::rename(const str& name,bool keepNewName,bool overwrite)
+bool filename::rename(const char* pfname,bool keepNewName,bool overwrite)
 {
     // check to see if the resource exists as a regular file
     if ( !exists() )
@@ -660,20 +710,20 @@ bool filename::rename(const str& name,bool keepNewName,bool overwrite)
         return false;
     }
     // check overwrite condition
-    if ( !overwrite && /*does exist*/::GetFileAttributes( name.c_str() )!=INVALID_FILE_ATTRIBUTES )
+    if ( !overwrite && /*does exist*/::GetFileAttributes(pfname)!=INVALID_FILE_ATTRIBUTES )
     {
         rlib_last_error::set<already_exists_error>();
         return false;
     }
     // attempt to rename
-    if ( !::MoveFile( get_full_name().c_str(),name.c_str() ) )
+    if ( !::MoveFile( get_full_name().c_str(),pfname ) )
     {
         rlib_last_error::switch_set();
         return false;
     }
     if (keepNewName)
     {
-        str s = name;
+        str s = pfname;
         _trunLeader(s);
         _path = s;
     }

@@ -7,8 +7,8 @@
 
 namespace rtypes
 {
-    std::ostream& operator <<(std::ostream&,const str&);
-    std::istream& operator >>(std::istream&,str&);
+    std::ostream& operator <<(std::ostream&,const generic_string&);
+    std::istream& operator >>(std::istream&,generic_string&);
 }
 
 #endif

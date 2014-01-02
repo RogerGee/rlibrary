@@ -175,7 +175,7 @@ bool standard_device::is_valid_error() const
 {
     return _error != NULL;
 }
-void standard_device::_readAll(str& buffer)
+void standard_device::_readAll(generic_string& buffer)
 {
     buffer = "something";
 }

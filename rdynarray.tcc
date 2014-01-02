@@ -1,16 +1,16 @@
 // rdynarray.tcc - out-of-line implementation for rdynarray
 
 template<typename T>
-rtypes::dynarray<T>::dynarray()
+rtypes::dynamic_array<T>::dynamic_array()
 {
 }
 template<typename T>
-rtypes::dynarray<T>::dynarray(dword iniSize)
+rtypes::dynamic_array<T>::dynamic_array(dword iniSize)
 {
     _exactAlloc(iniSize);
 }
 template<typename T>
-rtypes::dynarray<T>::dynarray(dword iniSize,const T& defaultValue)
+rtypes::dynamic_array<T>::dynamic_array(dword iniSize,const T& defaultValue)
 {
     T* data;
     _exactAlloc(iniSize);
@@ -19,45 +19,45 @@ rtypes::dynarray<T>::dynarray(dword iniSize,const T& defaultValue)
         data[i] = defaultValue;
 }
 template<typename T>
-T& rtypes::dynarray<T>::operator [](dword i)
+T& rtypes::dynamic_array<T>::operator [](dword i)
 {
     return _getData()[i];
 }
 template<typename T>
-const T& rtypes::dynarray<T>::operator [](dword i) const
+const T& rtypes::dynamic_array<T>::operator [](dword i) const
 {
     return _getData()[i];
 }
 template<typename T>
-T& rtypes::dynarray<T>::at(dword i)
+T& rtypes::dynamic_array<T>::at(dword i)
 {
     if (i < _size())
         return _getData()[i];
     throw out_of_bounds_error();
 }
 template<typename T>
-const T& rtypes::dynarray<T>::at(dword i) const
+const T& rtypes::dynamic_array<T>::at(dword i) const
 {
     if (i < _size())
         return _getData()[i];
     throw out_of_bounds_error();
 }
 template<typename T>
-T& rtypes::dynarray<T>::front()
+T& rtypes::dynamic_array<T>::front()
 {
     if (0 < _size())
         return _getData()[0];
     throw element_not_found_error();
 }
 template<typename T>
-const T& rtypes::dynarray<T>::front() const
+const T& rtypes::dynamic_array<T>::front() const
 {
     if (0 < _size())
         return _getData()[0];
     throw element_not_found_error();
 }
 template<typename T>
-T& rtypes::dynarray<T>::back()
+T& rtypes::dynamic_array<T>::back()
 {
     dword sz = _size();
     if (0 <= --sz)
@@ -65,7 +65,7 @@ T& rtypes::dynarray<T>::back()
     throw element_not_found_error();
 }
 template<typename T>
-const T& rtypes::dynarray<T>::back() const
+const T& rtypes::dynamic_array<T>::back() const
 {
     dword sz = _size();
     if (0 <= --sz)
@@ -73,21 +73,21 @@ const T& rtypes::dynarray<T>::back() const
     throw element_not_found_error();
 }
 template<typename T>
-void rtypes::dynarray<T>::push_back(const T& elem)
+void rtypes::dynamic_array<T>::push_back(const T& elem)
 {
     dword sz = _size();
     _virtAlloc(sz+1);
     _getData()[sz] = elem;
 }
 template<typename T>
-T& rtypes::dynarray<T>::pop_back()
+T& rtypes::dynamic_array<T>::pop_back()
 {
     dword sz = _size();
     _virtAlloc(--sz);
     return _getData()[sz];
 }
 template<typename T>
-T& rtypes::dynarray<T>::operator ++()
+T& rtypes::dynamic_array<T>::operator ++()
 {
     // add new default element and return reference
     dword sz = _size();
@@ -95,7 +95,7 @@ T& rtypes::dynarray<T>::operator ++()
     return _getData()[sz];
 }
 template<typename T>
-T& rtypes::dynarray<T>::operator ++(int)
+T& rtypes::dynamic_array<T>::operator ++(int)
 {
     // same as prefix
     dword sz = _size();
@@ -103,7 +103,7 @@ T& rtypes::dynarray<T>::operator ++(int)
     return _getData()[sz];
 }
 template<typename T>
-void rtypes::dynarray<T>::resize(dword allocSize,bool exact)
+void rtypes::dynamic_array<T>::resize(dword allocSize,bool exact)
 {
     if (exact)
         _exactAlloc(allocSize);
@@ -111,12 +111,12 @@ void rtypes::dynarray<T>::resize(dword allocSize,bool exact)
         _virtAlloc(allocSize);
 }
 template<typename T>
-void rtypes::dynarray<T>::clear()
+void rtypes::dynamic_array<T>::clear()
 {
     _virtAlloc(0);
 }
 template<typename T>
-void rtypes::dynarray<T>::reset()
+void rtypes::dynamic_array<T>::reset()
 {
     _dealloc();
 }

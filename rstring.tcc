@@ -12,16 +12,6 @@ rtypes::rtype_string<CharType>::~rtype_string()
     // do nothing
 }
 template<typename CharType>
-CharType& rtypes::rtype_string<CharType>::operator [](dword i)
-{
-    return _buffer->data[i];
-}
-template<typename CharType>
-const CharType& rtypes::rtype_string<CharType>::operator [](dword i) const
-{
-    return _buffer->data[i];
-}
-template<typename CharType>
 rtypes::rtype_string<CharType>& rtypes::rtype_string<CharType>::operator =(CharType c)
 {
     _allocate(2);
@@ -54,8 +44,8 @@ rtypes::rtype_string<CharType>& rtypes::rtype_string<CharType>::operator +=(cons
     dword len = 0, lastSize = size();
     while (pcstr[len])
         ++len;
-    _allocate(_buffer->size+len);
-    for (dword i = 0;i<len;i++)
+    _allocate(lastSize + ++len); // add 1 to len to account for the null-terminator
+    for (dword i = 0;i<len;i++) // the terminator will be copied in from pcstr
         _buffer->data[i+lastSize] = pcstr[i];
     _nullTerm();
     return *this;
@@ -63,8 +53,8 @@ rtypes::rtype_string<CharType>& rtypes::rtype_string<CharType>::operator +=(cons
 template<typename CharType>
 rtypes::rtype_string<CharType>& rtypes::rtype_string<CharType>::operator +=(const rtype_string<CharType>& obj)
 {
-    dword lastSz = _buffer->size;
-    _allocate(_buffer->size+obj._buffer->size);
+    dword lastSz = size();
+    _allocate(lastSz+obj._buffer->size);
     for (dword i = 0;i<obj._buffer->size;i++)
         _buffer->data[i+lastSz] = obj[i];
     _nullTerm();
@@ -149,6 +139,13 @@ void rtypes::rtype_string<CharType>::_copy(const CharType* pcstr)
     _copy(pcstr,++len); // include null-terminator
 }
 template<typename CharType>
+void rtypes::rtype_string<CharType>::_copy(const CharType* pcstr,dword len)
+{
+    _allocate(len);
+    for (dword i = 0;i<len;i++)
+        _buffer->data[i] = pcstr[i];
+}
+template<typename CharType>
 void rtypes::rtype_string<CharType>::_nullTerm()
 {
     _buffer->data[_buffer->size-1] = 0;
@@ -177,7 +174,7 @@ void rtypes::rtype_string<CharType>::_StringBuffer::allocate(dword desiredSize)
         if (size+extra >= desiredSize)
         {
             // virtual allocation - enough space is already
-            // allocated; adjust 
+            // allocated; adjust
             dword dif = desiredSize - size;
             extra -= dif;
             size += dif;
@@ -254,7 +251,8 @@ rtypes::deep_string<CharType>::deep_string(const _Base& obj)
     // use statically-allocated buffer
     _buffer = &_buf;
     // copy string (along with null terminator)
-    _copy(obj._buffer->data,obj._buffer->size);
+    const typename _Base::_StringBuffer* pbuf = _getBuffer(obj);
+    _copy(pbuf->data,pbuf->size);
 }
 template<typename CharType>
 rtypes::deep_string<CharType>::deep_string(const deep_string& obj)
@@ -342,13 +340,6 @@ void rtypes::deep_string<CharType>::_deallocate()
 {
     _buf.deallocate();
 }
-template<typename CharType>
-void rtypes::deep_string<CharType>::_copy(const CharType* pcstr,dword len)
-{
-    _buf.allocate(len);
-    for (dword i = 0;i<len;i++)
-        _buf.data[i] = pcstr[i];
-}
 
 // rtypes::shallow_string<>
 template<typename CharType>
@@ -374,7 +365,8 @@ rtypes::shallow_string<CharType>::shallow_string(const _Base& obj)
     // set up new string buffer
     _buffer = new _StringBufferEx;
     // copy string (including null terminator) into buffer
-    _copy(obj.buffer->data,obj.buffer->size);
+    const typename _Base::_StringBuffer* pbuf = _getBuffer(obj);
+    _copy(pbuf->data,pbuf->size);
 }
 template<typename CharType>
 rtypes::shallow_string<CharType>::shallow_string(const shallow_string& obj)
@@ -406,34 +398,62 @@ rtypes::shallow_string<CharType>::~shallow_string()
 template<typename CharType>
 rtypes::shallow_string<CharType>& rtypes::shallow_string<CharType>::operator =(CharType t)
 {
+    // just invoke the base-class version
+    static_cast<_Base*>(this)->operator =(t);
+    return *this;
 }
 template<typename CharType>
 rtypes::shallow_string<CharType>& rtypes::shallow_string<CharType>::operator =(const CharType* pcstr)
 {
+    // just invoke the base-class version
+    static_cast<_Base*>(this)->operator =(pcstr);
+    return *this;
 }
 template<typename CharType>
 rtypes::shallow_string<CharType>& rtypes::shallow_string<CharType>::operator =(const _Base& obj)
 {
+    // just invoke the base-class version
+    static_cast<_Base*>(this)->operator =(obj);
+    return *this;
 }
 template<typename CharType>
 rtypes::shallow_string<CharType>& rtypes::shallow_string<CharType>::operator =(const shallow_string& obj)
 {
+    // forget old reference and delete if last reference
+    if (--static_cast<_StringBufferEx*>(_buffer)->reference == 0)
+        delete _buffer;
+    // copy reference and increment reference count
+    _buffer = obj._buffer;
+    ++static_cast<_StringBufferEx*>(_buffer)->reference;
+    return *this;
 }
 template<typename CharType>
 rtypes::shallow_string<CharType>& rtypes::shallow_string<CharType>::operator +=(CharType t)
 {
+    // just invoke the base-class version
+    static_cast<_Base*>(this)->operator +=(t);
+    return *this;
 }
 template<typename CharType>
 rtypes::shallow_string<CharType>& rtypes::shallow_string<CharType>::operator +=(const CharType* pcstr)
 {
+    // just invoke the base-class version
+    static_cast<_Base*>(this)->operator +=(pcstr);
+    return *this;
 }
 template<typename CharType>
 rtypes::shallow_string<CharType>& rtypes::shallow_string<CharType>::operator +=(const _Base& obj)
 {
+    // just invoke the base-class version
+    static_cast<_Base*>(this)->operator +=(obj);
+    return *this;
 }
 template<typename CharType>
 rtypes::shallow_string<CharType>& rtypes::shallow_string<CharType>::operator +=(const shallow_string& obj)
 {
+    // just invoke the base-class version
+    static_cast<_Base*>(this)->operator +=(obj);
+    return *this;
 }
 template<typename CharType>
 void rtypes::shallow_string<CharType>::_allocate(dword desiredSize)
@@ -460,16 +480,43 @@ void rtypes::shallow_string<CharType>::_allocate(dword desiredSize)
 template<typename CharType>
 void rtypes::shallow_string<CharType>::_deallocate()
 {
+    _StringBufferEx* pbuf = static_cast<_StringBufferEx*>(_buffer);
+    if (pbuf->reference > 1)
+    {
+        // buffer is about to be modified; lose the old one
+        // and allocate a new buffer for the pending operation
+        --pbuf->reference;
+        _buffer = new _StringBufferEx; // leave in null state
+    }
+    else
+    {
+        // the reference is in sole use by this object,
+        // therefore the buffer may be modified directly
+        _buffer->deallocate();
+    }
 }
 template<typename CharType>
-void rtypes::shallow_string<CharType>::_copy(const CharType* pcstr,dword len)
+CharType& rtypes::shallow_string<CharType>::_access(dword index)
 {
+    _StringBufferEx* pbuf = static_cast<_StringBufferEx*>(_buffer);
+    if (pbuf->reference > 1)
+    {
+        // buffer is (potentially) about to be modified; lose the reference
+        // and create a new buffer for the pending operation
+        --pbuf->reference;
+        _buffer = new _StringBufferEx;
+        _buffer->allocate(pbuf->size);
+        for (dword i = 0;i<pbuf->size;i++)
+            _buffer->data[i] = pbuf->data[i];
+    }
+    return _buffer->data[index];
 }
 
 // rtypes::shallow_string<>::_StringBufferEx
+template<typename CharType>
 rtypes::shallow_string<CharType>::_StringBufferEx::_StringBufferEx()
 {
-    _reference = 1;
+    reference = 1;
 }
 
 // comparison operator overloads for rtype_string
