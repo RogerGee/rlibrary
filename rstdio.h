@@ -15,11 +15,18 @@ namespace rtypes
     class standard_device : public io_device
     {
     public:
-        standard_device();
-        standard_device(const standard_device&);
+        standard_device(); // opens the standard input, output, and error
+        standard_device(io_access_flag desiredAccess); // opens the device for the specified access
+        standard_device(const standard_device&); // creates a device based on the specified
         ~standard_device();
 
         standard_device& operator =(const standard_device&);
+
+        // error IO operations
+        void write_error(const generic_string& buffer) // writes the size of the specified string buffer to the device's error context
+        { _writeErrBuffer(buffer.c_str(),buffer.size()); }
+        void write_error(const void* buffer,dword length) // writes the specified buffer to the device's error context
+        { _writeErrBuffer(buffer,length); }
 
         // error functionality
         bool open_error(const char* deviceID = NULL); // opens only the standard error device [sys]

@@ -9,8 +9,7 @@ using namespace rtypes;
 // rtypes::standard_device
 bool standard_device::open_error(const char*)
 {
-    _error = new io_resource( reinterpret_cast<void*>(STDERR_FILENO) );
-    ++_ResourceRef(_error); // increment reference count for first usage
+    _error = new io_resource( reinterpret_cast<void*>(STDERR_FILENO),false );
     return true;
 }
 void standard_device::_writeErrBuffer(const void* buffer,dword length)
@@ -44,18 +43,9 @@ void standard_device::_writeErrBuffer(const void* buffer,dword length)
 void standard_device::_openEvent(const char*,io_access_flag kind,dword**,dword)
 {
     if (kind & read_access)
-    {
-        _input = new io_resource( reinterpret_cast<void*>(STDIN_FILENO) );
-        ++_ResourceRef(_input);
-    }
+        _input = new io_resource( reinterpret_cast<void*>(STDIN_FILENO),false );
     if (kind & write_access)
-    {
-        _output = new io_resource( reinterpret_cast<void*>(STDOUT_FILENO) );
-        ++_ResourceRef(_output);
-    }
-    if ((kind&read_access) && (kind&write_access))
-    {
-        _error = new io_resource( reinterpret_cast<void*>(STDERR_FILENO) );
-        ++_ResourceRef(_error);
-    }
+        _output = new io_resource( reinterpret_cast<void*>(STDOUT_FILENO),false );
+    if (kind == all_access)
+        _error = new io_resource( reinterpret_cast<void*>(STDERR_FILENO),false );
 }

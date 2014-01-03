@@ -730,7 +730,7 @@ bool filename::create() const
     // attempt to create the file, only
     // if it does not already exist
     int fd;
-    fd = ::open( get_full_name().c_str(),O_CREAT|O_EXCL|O_RDONLY,0664 );
+    fd = ::open(get_full_name().c_str(),O_CREAT|O_EXCL|O_RDONLY,S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH);
     if (fd == -1)
     {
         if (errno == EROFS)
@@ -756,7 +756,7 @@ bool filename::copy(const char* pfname,bool overwrite) const
         return false;
     }
     // open the new file; overwrite if specified and necessary
-    fnew = ::open(pfname,O_CREAT|(overwrite?O_EXCL:O_TRUNC)|O_WRONLY,0664);
+    fnew = ::open(pfname,O_CREAT|(overwrite?O_EXCL:O_TRUNC)|O_WRONLY,S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH);
     if (fnew == -1)
     {
         rlib_last_error::switch_set();

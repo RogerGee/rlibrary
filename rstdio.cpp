@@ -20,11 +20,23 @@ using namespace rtypes;
 
 // rtypes::standard_device
 standard_device::standard_device()
+    : _error(NULL)
 {
-    _error = NULL;
+    // open all IO contexts by default
+    open();
+}
+standard_device::standard_device(io_access_flag desiredAccess)
+    : _error(NULL)
+{
+    if (desiredAccess == all_access)
+        open();
+    else if (desiredAccess == read_access)
+        open_input();
+    else if (desiredAccess == write_access)
+        open_output();
 }
 standard_device::standard_device(const standard_device& device)
-    : io_device(device)
+    : io_device(device) // invoke base-class copy operation
 {
     _error = device._error;
     if (_error != NULL)
@@ -48,9 +60,11 @@ standard_device& standard_device::operator =(const standard_device& device)
 {
     if (this != &device)
     {
-        // invoke base-class assignment operator
-        static_cast<io_device*>(this)->operator =(device);
+        // invoke base-class assignment operation
+        _assign(device);
         // copy error
+        if (_error!=NULL && --_ResourceRef(_error)<=0)
+            delete _error;
         _error = device._error;
         if (_error != NULL)
             ++_ResourceRef(_error);
@@ -175,9 +189,8 @@ bool standard_device::is_valid_error() const
 {
     return _error != NULL;
 }
-void standard_device::_readAll(generic_string& buffer)
+void standard_device::_readAll(generic_string&)
 {
-    buffer = "something";
 }
 void standard_device::_closeEvent(io_access_flag)
 {

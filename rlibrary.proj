@@ -22,6 +22,7 @@
 		<ClCompile Include="rfilename.cpp" />
 		<ClCompile Include="rlasterr.cpp" />
 		<ClCompile Include="riodevice.cpp" />
+		<ClCompile Include="rstdio.cpp" />
 		<ClCompile Include="integration\*.cpp" />
 		<ClCompile Include="utility\*.cpp" />
 	</ItemGroup>

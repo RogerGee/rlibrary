@@ -27,10 +27,12 @@ using namespace rtypes;
 // define target-independent code
 
 // rtypes::io_resource
-io_resource::io_resource(void* defaultValue)
+io_resource::io_resource(void* defaultValue,bool performClose)
     : _MyBase(defaultValue)
 {
-    _reference = 0;
+    // count the initial reference
+    _reference = 1;
+    _closable = performClose;
 }
 
 // rtypes::io_device
@@ -73,21 +75,6 @@ io_device::~io_device()
         else
             _output = NULL;
     }
-}
-io_device& io_device::operator =(const io_device& device)
-{
-    if (this != &device)
-    {
-        _input = device._input;
-        if (_input != NULL)
-            ++_input->_reference;
-        _output = device._output;
-        if (_output != NULL)
-            ++_output->_reference;
-        _lastOp = is_valid_context() ? no_operation : no_device;
-        _byteCount = 0;
-    }
-    return *this;
 }
 str io_device::read(dword bytesToRead)
 {
@@ -288,6 +275,25 @@ bool io_device::is_valid_input() const
 bool io_device::is_valid_output() const
 {
     return _output != NULL;
+}
+io_device& io_device::_assign(const io_device& device)
+{
+    if (this != &device)
+    {
+        if (_input!=NULL && --_input->_reference<=0)
+            delete _input;
+        _input = device._input;
+        if (_input != NULL)
+            ++_input->_reference;
+        if (_output!=NULL && --_output->_reference<=0)
+            delete _output;
+        _output = device._output;
+        if (_output != NULL)
+            ++_output->_reference;
+        _lastOp = is_valid_context() ? no_operation : no_device;
+        _byteCount = 0;
+    }
+    return *this;
 }
 /* static */ int& io_device::_ResourceRef(io_resource* pres)
 {

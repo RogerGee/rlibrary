@@ -292,7 +292,7 @@ bool path::erase(bool failOnSubDirectories)
                 if (!failOnSubDirectories)
                 {
                     // recursively remove the sub-directory
-                    path p(fdata.cFileName,pname);
+                    path p(fdata.cFileName,pname.c_str());
                     if ( !p.erase(true) )
                     {
                         ::FindClose(hFound);

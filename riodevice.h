@@ -33,15 +33,17 @@ namespace rtypes
     enum io_access_flag
     {
         no_access = 0x0000,
-        write_access = 0x0001,
-        read_access = 0x0002,
+        read_access = 0x0001,
+        write_access = 0x0002,
         all_access = 0x0003
     };
 
     /* io_resource
      *  describes a system IO resource in a cross-platform way;
      * 8 bytes are allocated for the resource identifier (handle,
-     * descriptor, ETC.)
+     * descriptor, ETC.); an io_resource object attempts to close
+     * the resource in some system-specific way when it is destroyed;
+     * this action may be prevented by disallowing close actions
      */
     class io_resource : public resource<8>
     {
@@ -49,10 +51,11 @@ namespace rtypes
         typedef resource<8> _MyBase;
     public:
         io_resource(); // initialize an invalid resource in a system-specific manner [sys]
-        io_resource(void* defaultValue); // initialize a resource with the specified default value
+        io_resource(void* defaultValue,bool performClose = true); // initialize a resource with the specified default value
         ~io_resource(); // closes the IO resource in a system-specific manner [sys] [terr]
     private:
         int _reference;
+        bool _closable;
     };
 
     /* io_device
@@ -63,10 +66,7 @@ namespace rtypes
     {
     public:
         io_device();
-        io_device(const io_device&); // creates a copy of the current IO context of the specified device
         virtual ~io_device();
-
-        io_device& operator =(const io_device&); // creates a copy of the current IO context of the specified device
 
         void read(generic_string& buffer) // reads the capacity of the specified string object from the device
         { _readBuffer(&buffer[0],buffer.capacity()); }
@@ -106,6 +106,12 @@ namespace rtypes
         bool is_valid_input() const; // determines if the current input context is available
         bool is_valid_output() const; // determines if the current output context is available
     protected:
+        // copy operations reserved for derived classes for strict type enforcement;
+        // the user should redirect to assign a device that's of a different type
+        io_device(const io_device&); // creates a copy of the current IO context of the specified device
+        io_device& operator =(const io_device&); // unimplemented; disallow assignments
+        io_device& _assign(const io_device&); // creates a copy of the current IO context of the specified device
+
         io_resource* _input;
         io_resource* _output;
         stack<io_resource*> _redirInput;

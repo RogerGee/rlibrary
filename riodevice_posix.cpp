@@ -11,10 +11,11 @@ io_resource::io_resource()
     : _MyBase(-1)
 {
     _reference = 0;
+    _closable = true;
 }
 io_resource::~io_resource()
 {
-    if (*this != INVALID_RESOURCE)
+    if (*this!=INVALID_RESOURCE && _closable)
     {
         if ( ::close( interpret_as<int>() ) != 0 )
             rlib_last_error::switch_throw();

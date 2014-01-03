@@ -11,10 +11,11 @@ io_resource::io_resource()
     : _MyBase(INVALID_HANDLE_VALUE)
 {
     _reference = 0;
+    _closable = true;
 }
 io_resource::~io_resource()
 {
-    if (*this != INVALID_RESOURCE)
+    if (*this!=INVALID_RESOURCE && _closable)
     {
         if ( ::CloseHandle( interpret_as<HANDLE>() )==0 )
             rlib_last_error::switch_throw();
@@ -56,7 +57,7 @@ void io_device::_writeBuffer(const void* buffer,dword length)
     if (_output != NULL)
     {
         DWORD bytesWrote;
-        if ( !::WriteFile(_output->interpret_as<HANDLE>(),buffer,length,&bytesWrote) )
+        if ( !::WriteFile(_output->interpret_as<HANDLE>(),buffer,length,&bytesWrote,NULL) )
         {
             _lastOp = bad_write;
             _byteCount = 0;
