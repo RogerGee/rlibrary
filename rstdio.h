@@ -5,6 +5,7 @@
 #ifndef RSTDIO_H
 #define RSTDIO_H
 #include "riodevice.h" // gets rstream.h
+#include "rstreammanip.h" // need these stream manipulators for standard_stream
 
 namespace rtypes
 {
@@ -47,9 +48,34 @@ namespace rtypes
         stack<io_resource*> _redirError;
 
         virtual void _openEvent(const char*,io_access_flag,dword**,dword);
-        virtual void _readAll(generic_string&);
+        virtual void _readAll(generic_string&) const;
         virtual void _closeEvent(io_access_flag);
     };
+
+    /* standard_stream
+     *  represents a text stream interface to a standard device;
+     * a standard_stream (by default) buffers its output until it
+     * is flushed, closed, destroyed, or encounters the 'endline'
+     * stream manipulator
+     */
+    class standard_stream : public rstream,
+                            public stream_device<standard_device>
+    {
+    public:
+        standard_stream();
+        standard_stream(standard_device&);
+        ~standard_stream();
+    private:
+        // stream device interface
+        virtual void _clearDevice(); // [sys]
+        virtual bool _openDevice(const char* deviceID);
+        virtual void _closeDevice();
+
+        // rstream interface
+        virtual bool _inDevice() const; // [sys]
+        virtual void _outDevice(); // [sys]
+    };
+    
 }
 
 #endif

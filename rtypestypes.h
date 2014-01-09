@@ -17,13 +17,6 @@ namespace rtypes
     //
 
     // enumerations
-    enum rlib_numeric_rep_flag
-    {
-        binary = 2,
-        octal = 8,
-        decimal = 10,
-        hexadecimal = 16
-    };
     //
 
     // structures (must not require external linkage)

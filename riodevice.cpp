@@ -76,7 +76,7 @@ io_device::~io_device()
             _output = NULL;
     }
 }
-str io_device::read(dword bytesToRead)
+str io_device::read(dword bytesToRead) const
 {
     // I provide this overload as a higher-level convinience
     str buffer;

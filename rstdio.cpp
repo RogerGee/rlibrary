@@ -189,9 +189,41 @@ bool standard_device::is_valid_error() const
 {
     return _error != NULL;
 }
-void standard_device::_readAll(generic_string&)
+void standard_device::_readAll(generic_string&) const
 {
+    // read a sizable chunk; the user can always use
+    // a stream (or try again) to see if any output
+    // remains
+    
 }
 void standard_device::_closeEvent(io_access_flag)
 {
+}
+
+// rtypes::standard_stream
+standard_stream::standard_stream()
+{
+    // standard text streams buffer by default
+    _doesBuffer = true;
+}
+standard_stream::standard_stream(standard_device& device)
+{
+    // standard text streams buffer by default
+    _doesBuffer = true;
+    open(device);
+}
+standard_stream::~standard_stream()
+{
+    // complete the stream_base behavior by calling a virtual
+    // member function that stream_base cannot
+    if ( !_bufOut.is_empty() )
+        flush_output();
+}
+bool standard_stream::_openDevice(const char*)
+{
+    return _device->open();
+}
+void standard_stream::_closeDevice()
+{
+    _device->close();
 }

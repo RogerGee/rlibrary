@@ -32,10 +32,10 @@ namespace rtypes
                 dword neededPosition = _tail+sz-1;
                 while (neededPosition>=_allocationSize())
                     _alloc();
+                T* buffer = _getData();
+                for (dword i = 0;i<sz;i++)
+                    buffer[_tail++] = elems[i];
             }
-            T* buffer = _getData();
-            for (dword i = 0;i<sz;i++)
-                buffer[_tail++] = elems[i];
         }
                 
         T pop()

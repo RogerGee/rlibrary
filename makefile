@@ -12,7 +12,7 @@ UTILITY_OBJ_files = $(addprefix $(OBJDIR)/,rutil_def_memory.o rutil_strcmp.o)
 # (rlibrary/integration)
 INTEGRATION_OBJ_files = $(addprefix $(OBJDIR)/,rintrg_ostream_str.o rintrg_istream_str.o)
 # (rlibrary)
-OBJ_files = $(addprefix $(OBJDIR)/,rstream.o rstringstream.o rlasterr.o rfilename.o riodevice.o rstdio.o) $(UTILITY_OBJ_files) $(INTEGRATION_OBJ_files)
+OBJ_files = $(addprefix $(OBJDIR)/,rstream.o rstreammanip.o rstringstream.o rlasterr.o rfilename.o riodevice.o rstdio.o) $(UTILITY_OBJ_files) $(INTEGRATION_OBJ_files)
 
 # library file
 LIB_rlibrary = $(addprefix $(LIBDIR)/,librlibrary.a)
@@ -22,6 +22,9 @@ $(LIB_rlibrary): $(OBJDIR) $(LIBDIR) $(OBJ_files)
 
 $(OBJDIR)/rstream.o: rstream.cpp $(RSTREAM_H) $(RSTACK_H)
 	$(BUILD_OBJ) $(OBJ_OUT)rstream.o rstream.cpp
+
+$(OBJDIR)/rstreammanip.o: rstreammanip.cpp $(RSTREAMMANIP_H)
+	$(BUILD_OBJ) $(OBJ_OUT)rstreammanip.o rstreammanip.cpp
 
 $(OBJDIR)/rstringstream.o: rstringstream.cpp $(RSTRINGSTREAM_H)
 	$(BUILD_OBJ) $(OBJ_OUT)rstringstream.o rstringstream.cpp
@@ -45,7 +48,7 @@ $(OBJDIR)/riodevice.o: riodevice.cpp riodevice_posix.cpp $(RIODEVICE_H) $(RLASTE
 	$(BUILD_OBJ) $(OBJ_OUT)riodevice.o riodevice.cpp -D RLIBRARY_BUILD_POSIX
 
 # [sys]
-$(OBJDIR)/rstdio.o: rstdio.cpp rstdio_posix.cpp $(RSTDIO_H)
+$(OBJDIR)/rstdio.o: rstdio.cpp rstdio_posix.cpp $(RSTDIO_H) $(RSTREAMMANIP_H)
 	$(BUILD_OBJ) $(OBJ_OUT)rstdio.o rstdio.cpp -D RLIBRARY_BUILD_POSIX
 
 $(OBJDIR):

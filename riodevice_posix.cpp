@@ -25,7 +25,7 @@ io_resource::~io_resource()
 }
 
 // rtypes::io_device
-void io_device::_readBuffer(void* buffer,dword bytesToRead)
+void io_device::_readBuffer(void* buffer,dword bytesToRead) const
 {
     if (_input != NULL)
     {

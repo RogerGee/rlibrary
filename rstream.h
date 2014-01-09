@@ -9,14 +9,14 @@
 
 namespace rtypes
 {
-    /* endlines
-     *  This library provides the constant 'endline' that provides
+    /* newline
+     *  This library provides the constant 'newline' that provides
      * the standard endline representation for streams. An underlying
      * device may translate endline into its own native encoding, but must
      * make sure to translate to endline when putting data into a stream.
      */
-    extern const str endline;
-        
+    extern const char newline;
+
     /* stream_buffer
      *  A stream_buffer represents the buffer that performs IO transactions between
      * device and stream. The virtual interface _inDevice() and _outDevice() must be
@@ -31,7 +31,7 @@ namespace rtypes
 
         mutable buffer _bufIn; // the state of the input buffer can change on an immutable operation
         buffer _bufOut; // the state of the output buffer cannot change on an immutable operation
-                
+
         /* _popInput( char& )
          * Gets the next character from the input buffer and removes it from the buffer.
          */
@@ -43,15 +43,15 @@ namespace rtypes
          */
         bool _peekInput(char&) const;
         bool _peekInput(char&,dword) const;
-                
+
         bool _hasInput() const
         { return !_bufIn.is_empty(); }
-                
+
         void _flushInputBuffer()
         { _bufIn.clear(); }
         void _flushOutputBuffer()
         { _bufOut.clear(); }
-                
+
         inline
         void _pushBackOutput(char c)
         { _bufOut.push(c); }
@@ -59,27 +59,27 @@ namespace rtypes
          */
         void _pushBackOutputString(const char*);
         void _pushBackOutputString(const generic_string&);
-                
+
         /* _inDevice() const
          * This member function controls how input is read into the stream from the device;
          * it may only modify the state of _bufIn and cannot modify the state of _bufOut.
          * This member function should return false if no data was read from the device successfully.
          */
         virtual bool _inDevice() const = 0;
-                
+
         /* _outDevice()
          * This member functions controls how output is written from the stream to the device;
          * this member function should write all data from the output buffer to the device (flush).
          * The buffer should be empty after the operation.
          */
         virtual void _outDevice() = 0;
-                
+
         // these iterators are provided both for derived implementation
         // and the implementation of _outDevice and _inDevice
         mutable dword _ideviceIter;
         dword _odeviceIter;
     };
-        
+
     /* stream_base
      *  Represents the base functionality for a text or binary rstream object. The base behavior
      * is get, peek, and put plus iteration, input success, output buffering:
@@ -96,7 +96,7 @@ namespace rtypes
     public:
         stream_base();
         virtual ~stream_base() {}
-                
+
         char get();
         char peek() const;
         char peek(dword) const; // peek zero-based indexed char from stream
@@ -122,19 +122,19 @@ namespace rtypes
         void set_output_iter(dword iter); // flushes output buffer
         void reset_output_iter()
         { set_output_iter(0); }
-                
+
         bool get_input_success() const
         { return _lastSuccess; }
         void set_input_success(bool success)
         { _lastSuccess = success; }
-                
+
         /* flush_output
          *  expose _outDevice as part of the interface since
          * flushing output is especially useful if buffering output
          */
         void flush_output()
         { _outDevice(); }
-                
+
         /* buffered output
          *  note: these member functions do not flush
          * the output buffer; a next operation, destructor
@@ -143,24 +143,46 @@ namespace rtypes
         { _doesBuffer = true; }
         void stop_buffering_output()
         { _doesBuffer = false; }
-        
+
         bool has_input() const;
         bool does_buffer_output() const
         { return _doesBuffer; }
-                
+
         operator void*() const // determines the status of the last input operation
         { return (void*) _lastSuccess; }
     protected:
         mutable bool _lastSuccess;
         bool _doesBuffer; // applies to the output buffer; behavior enforced by derived implementation
     };
-        
+
+    /* forward declare rstream_manipulator
+     */
+    class rstream_manipulator;
+
+    /* numeric_representation -
+     *  represents a numeric base for numeric
+     * to string conversions; any non-zero positive
+     * base value may be converted to this type within
+     * acceptable ranges
+     */
+    enum numeric_representation
+    {
+        binary = 2,
+        octal = 8,
+        decimal = 10,
+        hexadecimal = 16
+    };
+
+    /* rstream
+     *  represents a stream that provides a text interface to an underlying
+     * stream buffer
+     */
     class rstream : public stream_base
     {
     public:
         rstream();
         virtual ~rstream() {}
-                
+
         // delimit operations
         void add_extra_delimiter(char);
         void add_extra_delimiter(const generic_string& delimiterString);
@@ -168,20 +190,24 @@ namespace rtypes
         void remove_extra_delimiter(const generic_string& delimiterString);
         void clear_extra_delimiters();
         bool delimit_whitespace(bool yes);
-        str get_last_delimited_space() const
+        string get_last_delimited_space() const
         { return _delimStrLast; }
-        str get_active_delimited_space() const
+        string get_active_delimited_space() const
         { return _delimStrActive; }
-                
-        // instance operations
-        void set_numeric_width_instance(int nwidth)
-        { _nwidth = nwidth; }
-                
-        // put string followed by endline
-        void putline(const generic_string&);
+
+        // stream manipulation
+        dword width() const
+        { return _width; }
+        dword width(dword wide);
+        char fill() const
+        { return _fill; }
+        char fill(char fillChar);
+
         // get string delimited by endline (does not include endline character(s))
         void getline(generic_string&);
-                
+        // put string followed by endline
+        void putline(const generic_string&);
+
         // input operator overloads for basic types
         rstream& operator >>(bool&);
         rstream& operator >>(char&);
@@ -197,7 +223,7 @@ namespace rtypes
         rstream& operator >>(double&);
         rstream& operator >>(void*&);
         rstream& operator >>(generic_string&);
-                
+
         // output operator overloads for basic types
         rstream& operator <<(bool);
         rstream& operator <<(char);
@@ -214,39 +240,51 @@ namespace rtypes
         rstream& operator <<(const void*);
         rstream& operator <<(const char*);
         rstream& operator <<(const generic_string&);
-        rstream& operator <<(rlib_numeric_rep_flag);
+        rstream& operator <<(numeric_representation);
+        rstream& operator <<(const rstream_manipulator&);
     private:
-        rlib_numeric_rep_flag _repFlag; // state flag; the current representation for numeric=>string conversions
         bool _delimitWhitespace; // determines if whitespace is used as a delimiter
         set<char> _delimits; // active delimiters not including whitespace
-        mutable str _delimStrActive, _delimStrLast;
-        int _nwidth; // instance flag
-                
+        mutable string _delimStrActive, _delimStrLast;
+
+        // manipulator fields
+        dword _width;
+        char _fill;
+        numeric_representation _repFlag;
+
         bool _isWhitespace(char);
-                
+
         template<class Numeric>
-        void _pushBackNumeric(Numeric,bool);
+        void _pushBackNumeric(Numeric,bool,const char* prefix = NULL);
         template<class Numeric>
         Numeric _fromString(const str&,bool&);
-                
+
         template<class Numeric>
         static Numeric _abs(Numeric&);
         template<class Numeric>
         static Numeric _pow(Numeric,Numeric);
     };
-        
+
+    /* endianness
+     *  represents the byte-order for a value
+     * inserted into a binary stream
+     */
     enum endianness
     {
         little, // least significant byte first
         big // most significant byte first
     };
-        
+
+    /* rbinstream
+     *  represents a stream that provides a binary interface to
+     * an underlying stream buffer
+     */
     class rbinstream : public stream_base
     {
     public:
         rbinstream(); // set default endianness to little
         rbinstream(endianness); // set default endianness
-                
+
         //input operations
         rbinstream& operator >>(bool&);
         rbinstream& operator >>(char&);
@@ -262,7 +300,7 @@ namespace rtypes
         rbinstream& operator >>(double&);
         rbinstream& operator >>(void*&);
         rbinstream& operator >>(generic_string&);
-                
+
         //output operations
         rbinstream& operator <<(bool);
         rbinstream& operator <<(char);
@@ -282,15 +320,15 @@ namespace rtypes
         rbinstream& operator <<(endianness);
     private:
         endianness _endianFlag;
-                
+
         template<class Numeric>
         void _pushBackBinaryOrder(Numeric);
         template<class Numeric>
         Numeric _fromString(const str&,bool&);
     };
-        
+
     /* stream_device
-     *  Abstract base class that optionally can be inherited alongside 
+     *  Abstract base class that optionally can be inherited alongside
      * rstream or rbinstream that provides device functionality. A standard
      * rstream or rbinstream must inherit this interface as well.
      *
@@ -333,7 +371,7 @@ namespace rtypes
             if (_owned)
                 delete _device;
         }
-                
+
         stream_device& operator =(const stream_device& obj)
         {
             if (this != &obj)
@@ -362,7 +400,7 @@ namespace rtypes
             }
             return *this;
         }
-                
+
         bool open(const char* deviceID)
         {
             // open an owned device
@@ -378,7 +416,7 @@ namespace rtypes
             _device = &device;
             _owned = false;
         }
-                
+
         void clear()
         {
             _clearDevice();
@@ -389,7 +427,7 @@ namespace rtypes
             _flushInputBuffer();
             _flushOutputBuffer();
         }
-                
+
         void close()
         {
             // clear stream IO buffers
@@ -408,33 +446,33 @@ namespace rtypes
             // was closed by the stream
             _closeEvent();
         }
-                
+
         T& get_device()
         { return *_device; }
         const T& get_device() const
         { return *_device; }
     protected:
         T* _device;
-                
+
         bool _isOwned()
         { return _owned; }
     private:
         bool _owned;
-                
+
         /* virtual interface to be completed by derived class
          *      (any non-pure-virtual function is optional and by default does nothing)
-         *      
+         *
          * - _clearDevice(): should remove all data from the device if possible; if not possible
          *  this function should do nothing
          *
          * - _openDevice(): should open an owned device based on a string device ID
-         *  
+         *
          * - _closeDevice(): should perform implementation-defined operations to close the IO device
          *      and release any OS resources they were using; this member function is only called when
          *      an owned device is being closed. From the stream's perspective, it does not know how to properly close
          *      an IO device that it owns and needs a reference. stream_device<T> assumes that when an IO device reference
          *      is destroyed that the proper close action takes place
-         *      
+         *
          * - _closeEvent() [optional]: should perform any close actions for the stream; unlike _closeDevice, _closeEvent
          *  is invoked each time a stream is being closed. This allows the stream's derived implementation to perform any
          *  needed close action. The default behavior of this member function is to do nothing.
@@ -446,7 +484,7 @@ namespace rtypes
     };
 
     /* const_stream_device
-     *  Abstract base class that optionally can be inherited alongside 
+     *  Abstract base class that optionally can be inherited alongside
      * rstream or rbinstream that provides device functionality. A standard
      * rstream or rbinstream must inherit this interface as well.
      *
@@ -465,7 +503,7 @@ namespace rtypes
      * stream device can perform a non-const open operation. (This is implemented merely has a const_cast from _device.)
      *
      * A const_stream_device<T> has access to the rstream or rbinstream's stream buffer but nothing more and
-     * may only read into that buffer. If an rstream or rbinstream is using a const_stream_device, then 
+     * may only read into that buffer. If an rstream or rbinstream is using a const_stream_device, then
      */
     template<typename T>
     class const_stream_device : virtual protected stream_buffer
@@ -513,12 +551,14 @@ namespace rtypes
         }
 
         /* for a const stream device, this member
-         * has a slightly different meaning; it 
-         * merely clears the stream buffers, not 
+         * has a slightly different meaning; it
+         * merely clears the stream buffers, not
          * the underlying device
          */
         void clear()
         {
+            // reset input iterator (it's the only one that's used)
+            _ideviceIter = 0;
             // flush stream IO buffers
             _flushInputBuffer();
             _flushOutputBuffer();
@@ -541,12 +581,12 @@ namespace rtypes
             // was closed by the stream
             _closeEvent();
         }
-        
+
         const T& get_device() const
         { return *_device; }
     protected:
         const T* _device;
-        
+
         bool _isOwned() const
         { return _owned; }
     private:
@@ -554,15 +594,15 @@ namespace rtypes
 
         /* virtual interface to be completed by derived class
          *  (any non-pure-virtual function is optional and by default does nothing)
-         * - _openDevice(): should open an owned device based on a string device ID; a pointer to 
+         * - _openDevice(): should open an owned device based on a string device ID; a pointer to
          *      a mutable device object is passed so that the open procedure can be completed
-         *  
+         *
          * - _closeDevice(): should perform implementation-defined operations to close the IO device
          *      and release any OS resources they were using; this member function is only called when
          *      an owned device is being closed. From the stream's perspective, it does not know how to properly close
          *      an IO device that it owns and needs a reference. stream_device<T> assumes that when an IO device reference
          *      is destroyed that the proper close action takes place
-         *      
+         *
          * - _closeEvent() [optional]: should perform any close actions for the stream; unlike _closeDevice, _closeEvent
          *  is invoked each time a stream is being closed. This allows the stream's derived implementation to perform any
          *  needed close action. The default behavior of this member function is to do nothing.

@@ -1,9 +1,10 @@
 // rstream.cpp
 #include "rstream.h"
 #include "rstack.h"
+#include "rstreammanip.h"
 using namespace rtypes;
 
-const str rtypes::endline("\n");
+const char rtypes::newline = '\n';
 
 stream_buffer::stream_buffer()
 {
@@ -12,12 +13,16 @@ stream_buffer::stream_buffer()
 }
 bool stream_buffer::_popInput(char& var)
 {
-    // check for input
+    // sync input and output
+    if ( !_bufOut.is_empty() )
+        _outDevice();
+    // attempt to read from local input buffer
     if (_hasInput())
     {
         var = _bufIn.pop();
         return true;
     }
+    // attempt to get more input from device
     if ( _inDevice() ) // request more input
         return _popInput(var); // get next char from input
     //else no input was available from source
@@ -25,11 +30,13 @@ bool stream_buffer::_popInput(char& var)
 }
 bool stream_buffer::_peekInput(char& var) const
 {
+    // attempt to read from local input buffer
     if (_hasInput())
     {
         var = _bufIn.peek(); // doesn't advance the iterator
         return true;
     }
+    // attempt to get more input from device
     if ( _inDevice() ) // check for input
         return _peekInput(var); // get next char from input
     //else no input was available from source
@@ -37,11 +44,13 @@ bool stream_buffer::_peekInput(char& var) const
 }
 bool stream_buffer::_peekInput(char& var,dword i) const
 {
+    // attempt to read from local input buffer
     if ( _hasInput() && _bufIn.size()>i )
     {
         var = *(&_bufIn.peek()+i);
         return true;
     }
+    // attempt to get more input from device
     if ( _inDevice() ) // check for input
         return _peekInput(var,i); // get next char from input
     // else no input was available from source
@@ -144,8 +153,10 @@ bool stream_base::has_input() const
 
 rstream::rstream()
 {
+    // initialize default manipulators
+    _width = 0;
+    _fill = ' ';
     _repFlag = decimal;
-    _nwidth = 0;
     _delimitWhitespace = true;
 }
 void rstream::add_extra_delimiter(char c)
@@ -181,6 +192,18 @@ bool rstream::delimit_whitespace(bool yes)
     bool b = _delimitWhitespace;
     _delimitWhitespace = yes;
     return b;
+}
+dword rstream::width(dword wide)
+{
+    dword tmp = _width;
+    _width = wide;
+    return tmp;
+}
+char rstream::fill(char fillChar)
+{
+    char tmp = _fill;
+    _fill = fillChar;
+    return tmp;
 }
 void rstream::getline(generic_string& var)
 {
@@ -680,10 +703,9 @@ rstream& rstream::operator <<(const double& d)
 }
 rstream& rstream::operator <<(const void* p)
 {
-    rlib_numeric_rep_flag nFlag = _repFlag;
+    numeric_representation nFlag = _repFlag;
     _repFlag = hexadecimal;
-    _pushBackOutputString("0x");
-    _pushBackNumeric<qword>(reinterpret_cast<qword>(p),false);
+    _pushBackNumeric<qword>(reinterpret_cast<qword>(p),false,"0x");
     _repFlag = nFlag;
     if (!_doesBuffer)
         _outDevice();
@@ -692,8 +714,7 @@ rstream& rstream::operator <<(const void* p)
 rstream& rstream::operator <<(const char* cs)
 {
     dword i = 0;
-    while ( cs[i] )
-        _pushBackOutput( cs[i++] );
+    _pushBackOutputString(cs);
     if (!_doesBuffer)
         _outDevice();
     return *this;
@@ -705,9 +726,14 @@ rstream& rstream::operator <<(const generic_string& s)
         _outDevice();
     return *this;
 }
-rstream& rstream::operator <<(rlib_numeric_rep_flag flag)
+rstream& rstream::operator <<(numeric_representation flag)
 {
     _repFlag = flag;
+    return *this;
+}
+rstream& rstream::operator <<(const rstream_manipulator& manipulator)
+{
+    manipulator.op(*this);
     return *this;
 }
 bool rstream::_isWhitespace(char c)
@@ -725,7 +751,7 @@ bool rstream::_isWhitespace(char c)
     return false;
 }
 template<class Numeric>
-void rstream::_pushBackNumeric(Numeric n,bool is_neg)
+void rstream::_pushBackNumeric(Numeric n,bool is_neg,const char* prefix)
 {
     if (is_neg && _repFlag!=decimal)
     {// occurs for signed types only - this preserves byte values for non-decimal reps
@@ -742,6 +768,8 @@ void rstream::_pushBackNumeric(Numeric n,bool is_neg)
     }
     stack<char> digitChars;
     str r;
+    if (prefix != NULL)
+        r = prefix;
     if (is_neg) // only true if Numeric is a signed type
         r.push_back('-');
     else if (n==0)
@@ -766,35 +794,50 @@ void rstream::_pushBackNumeric(Numeric n,bool is_neg)
             n -= 1;
         }
     }
-    // prepare output string
-    while (_nwidth > int(digitChars.size()))
+    if (_width > digitChars.size()+r.size())
     {
-        r.push_back('0');
-        _nwidth--;
+        for (dword i = 0;i<digitChars.size()+r.size()-_width;i++)
+            r.push_back(_fill);
     }
     while ( !digitChars.is_empty() )
         r.push_back( digitChars.pop() );
-    _nwidth= 0; // reset instance flag
     _pushBackOutputString(r);
-    return;
 }
 template<class Numeric>
 Numeric rstream::_fromString(const str& s/* will have at least 1 char */,bool& success)
 {
     Numeric r = 0;
     bool isNeg = (s[0]=='-' && s.size()>1);
+    // calculate inclusive bounds on numeric representation characters
+    // for different numeric bases; supported are 0-9, A-Z, and a-z depending
+    // on the base
+    const char arabicBound = _repFlag<=decimal ? '9' : '0'+char(_repFlag-1);
+    const char ucaseLetterBound = _repFlag>decimal ? 'A'+char(_repFlag-1) : -1;
+    const char lcaseLetterBound = _repFlag>decimal ? 'a'+char(_repFlag-1) : -1;
+    // go through each character; stop prematurely on bad character
     for (dword i = (isNeg || (s[0]=='+' && s.size()>1) ? 1 : 0);i<s.size();i++)
     {
-        r *= (Numeric) _repFlag;
-        if (s[i]>='0' && s[i]<='9')
-            r += s[i]-'0';
-        else if (s[i]>='A' && s[i]<='Z')
-            r += s[i]-'A';
-        else
+        char digi = -1;
+        if (s[i]>='0' && s[i]<=arabicBound)
+            digi = s[i]-'0';
+        if (ucaseLetterBound != -1) // support bases larger than 'decimal'
         {
+            if (s[i]>='A' && s[i]<=ucaseLetterBound)
+                digi = s[i]-'A';
+            else if (s[i]>='a' && s[i]<=lcaseLetterBound)
+                digi = s[i]-'a';
+        }
+        if (digi == -1) // bad character encountered
+        {
+            // try to preserve any good value before
+            // a bad character
+            if (isNeg)
+                r *= -1;
             success = false;
             return r;
         }
+        r *= (Numeric) _repFlag;
+        r += digi;
     }
     if (isNeg)
         r *= -1;

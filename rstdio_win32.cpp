@@ -61,3 +61,28 @@ void standard_device::_openEvent(const char*,io_access_flag kind,dword**,dword)
         _error = new io_resource( reinterpret_cast<void*>(hStdHandle),false );
     }
 }
+
+// rtypes::standard_stream
+void standard_stream::_clearDevice()
+{
+    // (as a convinience) see if the device
+    // is a console screen buffer; if so,
+    // clear the screen
+
+}
+bool standard_stream::_inDevice() const
+{
+    return false;
+}
+void standard_stream::_outDevice()
+{
+    const char* pbuffer;
+    while ( !_bufOut.is_empty() )
+    {
+        dword length = 0;
+        while (pbuffer[length] != '\n')
+            ++length;
+
+    }
+    _bufOut.clear();
+}

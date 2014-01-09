@@ -68,11 +68,11 @@ namespace rtypes
         io_device();
         virtual ~io_device();
 
-        void read(generic_string& buffer) // reads the capacity of the specified string object from the device
-        { _readBuffer(&buffer[0],buffer.capacity()); }
-        void read(void* buffer,dword bytesToRead) // reads the specified amount of bytes from the device into the specified buffer
+        void read(generic_string& buffer) const // reads (at most) the capacity of the specified string object; the string is resized to fit the actual amount read
+        { _readBuffer(&buffer[0],buffer.capacity()), buffer.resize(_byteCount); }
+        void read(void* buffer,dword bytesToRead) const // reads (at most) the specified number of bytes into the specified buffer
         { _readBuffer(buffer,bytesToRead); }
-        str read(dword bytesToRead = 0); // reads the specified number of bytes from the device into a string buffer and returns the result
+        str read(dword bytesToRead = 0) const; // reads the specified number of bytes from the device into a string buffer and returns the result
         void write(const generic_string& buffer) // writes the size of the specified string buffer to the device
         { _writeBuffer(buffer.c_str(),buffer.size()); }
         void write(const void* buffer,dword length) // writes the specified buffer to the device
@@ -116,11 +116,11 @@ namespace rtypes
         io_resource* _output;
         stack<io_resource*> _redirInput;
         stack<io_resource*> _redirOutput;
-        io_operation_flag _lastOp;
-        dword _byteCount;
+        mutable io_operation_flag _lastOp;
+        mutable dword _byteCount;
 
         // generic read/write interface
-        virtual void _readBuffer(void* buffer,dword bytesToRead); // reads a buffer from the device [sys]
+        virtual void _readBuffer(void* buffer,dword bytesToRead) const; // reads a buffer from the device [sys]
         virtual void _writeBuffer(const void* buffer,dword length); // writes a buffer to the device [sys]
 
         static int& _ResourceRef(io_resource*);
@@ -130,7 +130,7 @@ namespace rtypes
             io_access_flag accessKind,
             dword** arguments = NULL,
             dword argumentCount = 0) = 0; // opens a device in a system specific manner
-        virtual void _readAll(generic_string& buffer) = 0; // reads all available data from the device into the specified buffer, resizing as necessary
+        virtual void _readAll(generic_string& buffer) const = 0; // reads all available data from the device into the specified buffer, resizing as necessary
         virtual void _closeEvent(io_access_flag shutdownKind) = 0; // called whenever a device is completely shutdown
     };
 }

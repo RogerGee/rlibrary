@@ -49,3 +49,28 @@ void standard_device::_openEvent(const char*,io_access_flag kind,dword**,dword)
     if (kind == all_access)
         _error = new io_resource( reinterpret_cast<void*>(STDERR_FILENO),false );
 }
+
+// rtypes::standard_stream
+void standard_stream::_clearDevice()
+{
+    // (as a convinience) see if the device
+    // is a terminal and send it the ASCII
+    // escape code for clearing the screen
+
+}
+bool standard_stream::_inDevice() const
+{
+    dword cnt;
+    char buffer[4096];
+    // read in a buffer
+    _device->read(buffer,4096);
+    cnt = _device->get_last_byte_count();
+    _bufIn.push_range(buffer,cnt);
+    // return success if at least some bytes were read
+    return cnt > 0;
+}
+void standard_stream::_outDevice()
+{
+    _device->write(&_bufOut.peek(),_bufOut.size());
+    _bufOut.clear();
+}
