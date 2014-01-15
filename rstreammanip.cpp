@@ -11,11 +11,21 @@ void _rstream_endflush_manipulator::operation(rstream& stream) const
 const _rstream_endflush_manipulator rtypes::endline;
 
 // rtypes::setw
-setw::setw(int numericWidth)
+setw::setw(word numericWidth)
     : nwidth(numericWidth)
 {
 }
 void setw::operation(rstream& stream) const
 {
     stream.width(nwidth);
+}
+
+// rtypes::setprecision
+setprecision::setprecision(byte digitCnt)
+    : ndigits(digitCnt)
+{
+}
+void setprecision::operation(rstream& stream) const
+{
+    stream.precision(ndigits);
 }

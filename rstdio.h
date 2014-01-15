@@ -40,6 +40,9 @@ namespace rtypes
         bool is_valid_context() const // non-virtual override for standard_device type
         { return static_cast<const io_device&>(*this).is_valid_context() || is_valid_error(); }
         bool is_valid_error() const;
+
+        // other functionality
+        bool clear_screen(); // attempts to clear the screen if the device is a console/terminal; returns false if the operation could not be performed [sys]
     protected:
         io_resource* _error;
 
@@ -67,7 +70,7 @@ namespace rtypes
         ~standard_stream();
     private:
         // stream device interface
-        virtual void _clearDevice(); // [sys]
+        virtual void _clearDevice();
         virtual bool _openDevice(const char* deviceID);
         virtual void _closeDevice();
 
@@ -75,7 +78,33 @@ namespace rtypes
         virtual bool _inDevice() const; // [sys]
         virtual void _outDevice(); // [sys]
     };
-    
+
+    /* standard_binary_stream
+     *  represents a binary stream interface to a standard device;
+     * a standard_binary_stream (by default) buffers its output until it
+     * is flushed, closes, destroyed, or encounters the 'endline'
+     * stream manipulator
+     */
+    class standard_binary_stream : public rbinstream,
+                                   public stream_device<standard_device>
+    {
+    public:
+        standard_binary_stream();
+        standard_binary_stream(standard_device&);
+        ~standard_binary_stream();
+    private:
+        // stream device interface
+        virtual void _clearDevice();
+        virtual bool _openDevice(const char* deviceID);
+        virtual void _closeDevice();
+
+        // rstream interface
+        virtual bool _inDevice() const; // [sys]
+        virtual void _outDevice(); // [sys]
+    };
+
+    // standard stream object
+    extern standard_stream stdConsole;
 }
 
 #endif

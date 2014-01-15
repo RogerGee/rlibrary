@@ -155,6 +155,7 @@ rstream::rstream()
 {
     // initialize default manipulators
     _width = 0;
+    _precision = 0;
     _fill = ' ';
     _repFlag = decimal;
     _delimitWhitespace = true;
@@ -193,10 +194,16 @@ bool rstream::delimit_whitespace(bool yes)
     _delimitWhitespace = yes;
     return b;
 }
-dword rstream::width(dword wide)
+word rstream::width(word wide)
 {
-    dword tmp = _width;
+    word tmp = _width;
     _width = wide;
+    return tmp;
+}
+byte rstream::precision(byte ndigits)
+{
+    byte tmp = _precision;
+    _precision = ndigits;
     return tmp;
 }
 char rstream::fill(char fillChar)
@@ -497,10 +504,15 @@ rstream& rstream::operator >>(qword& var)
     var = _fromString<qword> (s,_lastSuccess);
     return *this;
 }
-rstream& rstream::operator >>(double& var)
+rstream& rstream::operator >>(float&)
+{
+    /* unimplemented */
+    _lastSuccess = false;
+    return *this;
+}
+rstream& rstream::operator >>(double&)
 {
     // unimplemented
-    var = 0.0;
     _lastSuccess = false;
     return *this;
 }
@@ -626,79 +638,91 @@ rstream& rstream::operator <<(const qword& q)
         _outDevice();
     return *this;
 }
+rstream& rstream::operator <<(float)
+{
+    /* unimplemented */
+    return *this;
+}
 rstream& rstream::operator <<(const double& d)
 {
+    // interpret the double as an integer of 64 bits
     const qword* data = reinterpret_cast<const qword*> (&d);
-    qword var, sig;
+    // constants
+    const short EXPONENT_BIAS = 1023;
+    const short MAX_BASE10_POWER = 18;
+    // locals
+    str rep;
+    qword sig;
     short expn;
     bool sign;
-    stack<char> digits;
-    sign = (*data>>63) == 1;
-    expn = short(((*data>>56)&0x7f)<<4) | (((*data>>48)&0xff)>>4);
-    sig = *data & 0xfffffffffffff;
+    // obtain the different parts of the double-precision floating point number
+    sign = (*data>>63) == 1; // sign part
+    expn = short(((*data>>56)&0x7f)<<4) | (((*data>>48)&0xff)>>4); // exponent part
+    sig = *data & 0xfffffffffffff; // fraction part
     // special cases
-    if (expn==0x000)
+    if (expn==0x000 && sig==0)
+        rep.append(sign ? "-0.0" : "0.0");
+    else if (expn==0x7ff && sig==0)
+        rep.append(sign ? "-infinity" : "infinity");
+    else if (expn==0x7ff && sig!=0)
+        rep.append("NaN");
+    // usual case
+    else
     {
-        if (sig==0)
+        // apply implicit 1 to significand if the number is normalized
+        if (expn != 0x000)
+            sig |= qword(1)<<52;
+        // apply the exponent bias (excess)
+        expn -= EXPONENT_BIAS;
+        // add prefixes to string
+        if (sign)
+            rep.push_back('-');
+        // perform conversion:
+        if ((expn>=0?expn:~expn+1) <= MAX_BASE10_POWER) // use x.x decimal format
         {
-            _pushBackOutputString(sign ? "-0.0" : "0.0");
-            return *this;
-        }
-    }
-    else if (expn==0x7ff)
-    {
-        if (sig==0)
-            _pushBackOutputString(sign ? "-infinity" : "infinity");
-        else
-            _pushBackOutputString("NaN");
-        return *this;
-    }
-    // apply implicit 1 (hidden bit) to significand if not subnormal
-    if (expn != 0x000)
-        sig |= qword(1)<<52;
-    // apply the exponent bias
-    expn -= 1023;
-    // output
-    if (sign)
-        _pushBackOutput('-');
-    if ((expn<0 ? ~expn+1 : expn) <= 17)
-    {
-        // use x.x decimal format (because we have powers of ten large enough to compute)
-        if (expn >= 0)
-        {
-            _pushBackNumeric(sig>>(52-expn),false);
-            _pushBackOutput('.');
-            sig <<= expn;
-        }
-        else
-        {
-            _pushBackOutputString("0.");
-            sig >>= _abs(expn);
-        }
-        var = 1;
-        for (short i = 1;i<=18;i++)
-        {
-            var *= 10;
-            if ((sig>>(52-i))&1)
+            // calculate the integer part and add it to the string
+            rep.append( _convertNumeric(sig >> (52-expn)) );
+            // move binary point left or right to normalize the number for its decimal
+            // representation given the previously calculated integer part
+            if (expn >= 0)
+                sig <<= expn;
+            else
+                sig >>= _abs(expn);
+            // calculate the fraction part
+            qword var = 1;
+            for (short i = 1;i<=MAX_BASE10_POWER;i++)
             {
-                qword powerOfTen = _pow(qword(10),qword(i));
-                qword powerOfTwo = 1 << i;
-                var += powerOfTen / powerOfTwo;
+                var *= 10;
+                if ((sig>>(52-i)) & 1)
+                {
+                    qword powerOfTen = _pow(qword(10),qword(i));
+                    qword powerOfTwo = 1 << i;
+                    var += powerOfTen / powerOfTwo;
+                }
             }
+            // get decimal digits
+            stack<char> digits;
+            while (var != 0)
+            {
+                char digit = var % qword(10);
+                if (digit!=0/*ignore trailing zeros*/ || digits.count()>0)
+                    digits.push('0'+digit);
+                var /= 10;
+            }
+            digits.pop(); // most sig. _repBase digit
+            // add decimal point to string
+            rep.push_back('.');
+            // add digits to string
+            while ( !digits.is_empty() )
+                rep.push_back( digits.pop() );
         }
-        // get digits
-        while (var != 0)
+        else // use scientific notation to express the floating-point number
         {
-            char digit = var % qword(10);
-            if (digit!=0/*trailing zeros*/ || digits.count()>0)
-                digits.push('0'+digit);
-            var /= 10;
+            /* unimplemented */
+            
         }
-        digits.pop(); // most sig. _repBase digit
-        // push back digits
-        while ( !digits.is_empty() )
-            _pushBackOutput( digits.pop() );
     }
+    _pushBackOutputString(rep);
     return *this;
 }
 rstream& rstream::operator <<(const void* p)
@@ -751,10 +775,10 @@ bool rstream::_isWhitespace(char c)
     return false;
 }
 template<class Numeric>
-void rstream::_pushBackNumeric(Numeric n,bool is_neg,const char* prefix)
+void rstream::_pushBackNumeric(Numeric n,bool isNeg,const char* prefix)
 {
-    if (is_neg && _repFlag!=decimal)
-    {// occurs for signed types only - this preserves byte values for non-decimal reps
+    if (isNeg && _repFlag!=decimal) // occurs for signed types only - this preserves byte values for non-decimal reps
+    {
         qword mask = 0; // will mask bits not needed by the size of Numeric
         qword q = n; // treat n (Numeric) as an unsigned value
         for (dword i = 0;i<sizeof(Numeric);i++)
@@ -766,42 +790,27 @@ void rstream::_pushBackNumeric(Numeric n,bool is_neg,const char* prefix)
         _pushBackNumeric(q,false);// recursively call _toString to get negative rep for non-decimal rep number
         return;
     }
-    stack<char> digitChars;
-    str r;
+    dword sz;
+    str conv, result;
+    // assign prefixes
     if (prefix != NULL)
-        r = prefix;
-    if (is_neg) // only true if Numeric is a signed type
-        r.push_back('-');
-    else if (n==0)
-        digitChars.push('0');
-    if (_repFlag>1)
+        result = prefix;
+    if (isNeg) // only true if Numeric is a signed type
+        result.push_back('-');
+    // obtain converted string representation
+    conv = _convertNumeric(n);
+    // add fill chars before digits
+    sz = conv.size() + result.size();
+    if (_width > sz)
     {
-        while (n!=0)
-        {
-            char off = (char) (n%(Numeric) _repFlag);
-            if (_abs(off)<=9)
-                digitChars.push('0'+off);
-            else
-                digitChars.push('A'+(off-10));
-            n /= (Numeric) _repFlag;
-        }
+        sz = _width - sz;
+        for (dword i = 0;i<sz;i++)
+            result.push_back(_fill);
     }
-    else if (_repFlag==1)
-    {// admit it, base-1 is hilarious!
-        while (n!=0) // n will always be of an unsigned type if using base-1
-        {
-            digitChars.push('0');
-            n -= 1;
-        }
-    }
-    if (_width > digitChars.size()+r.size())
-    {
-        for (dword i = 0;i<digitChars.size()+r.size()-_width;i++)
-            r.push_back(_fill);
-    }
-    while ( !digitChars.is_empty() )
-        r.push_back( digitChars.pop() );
-    _pushBackOutputString(r);
+    // add converted numeric integer
+    result += conv;
+    // insert the result into the stream
+    _pushBackOutputString(result);
 }
 template<class Numeric>
 Numeric rstream::_fromString(const str& s/* will have at least 1 char */,bool& success)
@@ -823,9 +832,9 @@ Numeric rstream::_fromString(const str& s/* will have at least 1 char */,bool& s
         if (ucaseLetterBound != -1) // support bases larger than 'decimal'
         {
             if (s[i]>='A' && s[i]<=ucaseLetterBound)
-                digi = s[i]-'A';
+                digi = s[i]-'A'+10;
             else if (s[i]>='a' && s[i]<=lcaseLetterBound)
-                digi = s[i]-'a';
+                digi = s[i]-'a'+10;
         }
         if (digi == -1) // bad character encountered
         {
@@ -840,8 +849,43 @@ Numeric rstream::_fromString(const str& s/* will have at least 1 char */,bool& s
         r += digi;
     }
     if (isNeg)
-        r *= -1;
+        r = ~r + 1;
     success = true;
+    return r;
+}
+template<class Numeric>
+str rstream::_convertNumeric(Numeric n) const
+{
+    stack<char> digitChars;
+    str r;
+    // check for zero-case
+    if (n == 0)
+        digitChars.push('0');
+    // convert numeric value into string representation
+    // based on the current numeric-base flag
+    if (_repFlag>1)
+    {
+        while (n!=0)
+        {
+            char off = (char) (n%(Numeric) _repFlag);
+            if (_abs(off)<=9)
+                digitChars.push('0'+off);
+            else
+                digitChars.push('A'+(off-10));
+            n /= (Numeric) _repFlag;
+        }
+    }
+    else if (_repFlag==1)
+    {// admit it, base-1 is hilarious!
+        while (n!=0) // n will always be of an unsigned type if using base-1
+        {
+            digitChars.push('0');
+            n -= 1;
+        }
+    }
+    // compile digits in the correct order
+    while ( !digitChars.is_empty() )
+        r.push_back( digitChars.pop() );
     return r;
 }
 template<class Numeric>

@@ -196,9 +196,12 @@ namespace rtypes
         { return _delimStrActive; }
 
         // stream manipulation
-        dword width() const
+        word width() const
         { return _width; }
-        dword width(dword wide);
+        word width(word wide);
+        byte precision() const
+        { return _precision; }
+        byte precision(byte ndigits);
         char fill() const
         { return _fill; }
         char fill(char fillChar);
@@ -220,6 +223,7 @@ namespace rtypes
         rstream& operator >>(unsigned long&);
         rstream& operator >>(long long&);
         rstream& operator >>(qword&);
+        rstream& operator >>(float&);
         rstream& operator >>(double&);
         rstream& operator >>(void*&);
         rstream& operator >>(generic_string&);
@@ -236,6 +240,7 @@ namespace rtypes
         rstream& operator <<(unsigned long);
         rstream& operator <<(const long long&);
         rstream& operator <<(const qword&);
+        rstream& operator <<(float);
         rstream& operator <<(const double&);
         rstream& operator <<(const void*);
         rstream& operator <<(const char*);
@@ -248,20 +253,24 @@ namespace rtypes
         mutable string _delimStrActive, _delimStrLast;
 
         // manipulator fields
-        dword _width;
+        word _width;
+        byte _precision;
         char _fill;
         numeric_representation _repFlag;
 
         bool _isWhitespace(char);
 
-        template<class Numeric>
+        template<typename Numeric>
         void _pushBackNumeric(Numeric,bool,const char* prefix = NULL);
-        template<class Numeric>
+        template<typename Numeric>
         Numeric _fromString(const str&,bool&);
 
-        template<class Numeric>
+        template<typename Numeric>
+        str _convertNumeric(Numeric) const;
+
+        template<typename Numeric>
         static Numeric _abs(Numeric&);
-        template<class Numeric>
+        template<typename Numeric>
         static Numeric _pow(Numeric,Numeric);
     };
 

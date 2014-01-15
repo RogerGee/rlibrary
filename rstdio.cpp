@@ -18,6 +18,9 @@ using namespace rtypes;
 
 // define target-independent code
 
+// define objects global to rtypes
+standard_stream rtypes::stdConsole;
+
 // rtypes::standard_device
 standard_device::standard_device()
     : _error(NULL)
@@ -219,11 +222,47 @@ standard_stream::~standard_stream()
     if ( !_bufOut.is_empty() )
         flush_output();
 }
+void standard_stream::_clearDevice()
+{
+    _device->clear_screen();
+}
 bool standard_stream::_openDevice(const char*)
 {
     return _device->open();
 }
 void standard_stream::_closeDevice()
+{
+    _device->close();
+}
+
+// rtypes::standard_binary_stream
+standard_binary_stream::standard_binary_stream()
+{
+    // standard text streams buffer by default
+    _doesBuffer = true;
+}
+standard_binary_stream::standard_binary_stream(standard_device& device)
+{
+    // standard text streams buffer by default
+    _doesBuffer = true;
+    open(device);
+}
+standard_binary_stream::~standard_binary_stream()
+{
+    // complete the stream_base behavior by calling a virtual
+    // member function that stream_base cannot
+    if ( !_bufOut.is_empty() )
+        flush_output();
+}
+void standard_binary_stream::_clearDevice()
+{
+    _device->clear_screen();
+}
+bool standard_binary_stream::_openDevice(const char*)
+{
+    return _device->open();
+}
+void standard_binary_stream::_closeDevice()
 {
     _device->close();
 }

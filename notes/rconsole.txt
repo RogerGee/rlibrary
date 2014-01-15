@@ -1,0 +1,6 @@
+rconsole
+-------------------------------------------------------------------------------------------
+Console Capabilities:
+        -> clear screen
+        -> change fore/back-color
+        -> bell char

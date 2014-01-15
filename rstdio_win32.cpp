@@ -14,6 +14,25 @@ bool standard_device::open_error(const char*)
     _error = new io_resource( reinterpret_cast<void*>(hStdHandle),false );
     return true;
 }
+bool standard_device::clear_screen()
+{
+    // (as a convinience) attempt to clear
+    // the screen; I use FillConsoleOutputCharacter
+    // and pass it a huge number so that it fills
+    // up every character cell
+    if (_output != NULL)
+    {
+        DWORD dummy;
+        COORD loc = {0,0};
+        if ( ::FillConsoleOutputCharacter(_output->interpret_as<HANDLE>(),' ',0xffffffff,loc,&dummy) )
+        {
+            // be friendly and reset the cursor to the top
+            ::SetConsoleCursorPosition(_output->interpret_as<HANDLE>(),loc);
+            return true;
+        }
+    }
+    return false;
+}
 void standard_device::_writeErrBuffer(const void* buffer,dword length)
 {
     if (_error != NULL)
@@ -63,26 +82,75 @@ void standard_device::_openEvent(const char*,io_access_flag kind,dword**,dword)
 }
 
 // rtypes::standard_stream
-void standard_stream::_clearDevice()
-{
-    // (as a convinience) see if the device
-    // is a console screen buffer; if so,
-    // clear the screen
-
-}
 bool standard_stream::_inDevice() const
 {
-    return false;
+    /* An rstream uses \n only to
+     * represent end lines; any \r
+     * octet is dropped from the input
+     * stream. This way, blocks can be
+     * read in efficiently in case the 
+     * underlying device has a lot of
+     * data.
+     */
+    dword i;
+    dword cnt;
+    char buffer[4096];
+    // read in a buffer
+    _device->read(buffer,4096);
+    cnt = _device->get_last_byte_count();
+    i = 0;
+    while (i < cnt)
+    {
+        const char* pbuf = buffer+i;
+        dword len = 0;
+        while (i<cnt && pbuf[len]!='\r')
+            ++len, ++i;
+        _bufIn.push_range(pbuf,len);
+        ++i;
+    }
+    // return success if at least some bytes where read
+    return cnt > 0;
 }
 void standard_stream::_outDevice()
 {
-    const char* pbuffer;
-    while ( !_bufOut.is_empty() )
+    /* On Windows, the \r\n endline
+     * encoding is commonly used on many
+     * devices. Therefore, all \n characters
+     * are translated into the sequence \r\n.
+     */
+    dword iter = 0;
+    const char* pbuffer = &_bufOut.peek();
+    while (true)
     {
         dword length = 0;
-        while (pbuffer[length] != '\n')
-            ++length;
-
+        while (iter<_bufOut.size() && pbuffer[length] != '\n')
+            ++length, ++iter;
+        _device->write(pbuffer,length);
+        if (iter >= _bufOut.size())
+            break;
+        _device->write("\r\n",2);
+        pbuffer += length+1;
+        ++iter;
     }
+    _bufOut.clear();
+}
+
+// rtypes::standard_binary_stream
+bool standard_binary_stream::_inDevice() const
+{
+    /* don't do anything fancy with the bytes... */
+    dword cnt;
+    char buffer[4096];
+    // read in a buffer
+    _device->read(buffer,4096);
+    cnt = _device->get_last_byte_count();
+    _bufIn.push_range(buffer,cnt);
+    // return success if at least some bytes were read
+    return cnt > 0;
+}
+void standard_binary_stream::_outDevice()
+{
+    /* don't do anything fancy with the bytes... */
+    _device->write(&_bufOut.peek(),_bufOut.size());
     _bufOut.clear();
 }
