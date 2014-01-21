@@ -18,10 +18,15 @@ namespace rtypes
         rtype_string();
         virtual ~rtype_string();
 
+        // unchecked access
         CharType& operator [](dword index)
         { return _access(index); }
         const CharType& operator [](dword index) const
         { return _buffer->data[index]; }
+
+        // range checked access
+        CharType& at(dword index);
+        const CharType& at(dword index) const;
 
         // operators (invoked by derived class versions)
         rtype_string& operator =(CharType);
@@ -98,7 +103,7 @@ namespace rtypes
     public:
         deep_string();
         deep_string(const CharType*);
-        deep_string(const _Base&);
+        explicit deep_string(const _Base&);
         deep_string(const deep_string&);
         explicit deep_string(dword allocSize);
 
@@ -130,7 +135,7 @@ namespace rtypes
     public:
         shallow_string();
         shallow_string(const CharType*);
-        shallow_string(const _Base&);
+        explicit shallow_string(const _Base&);
         shallow_string(const shallow_string&);
         explicit shallow_string(dword allocSize);
         ~shallow_string();

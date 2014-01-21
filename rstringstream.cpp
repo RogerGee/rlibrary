@@ -11,7 +11,7 @@ rstringstream::rstringstream(const char* initialValue)
     // construct with default value (enforced by the behavior of device ID open)
     open(initialValue);
 }
-rstringstream::rstringstream(str& strDevice)
+rstringstream::rstringstream(generic_string& strDevice)
 {
     // construct with non-owned device
     open(strDevice);
@@ -67,12 +67,12 @@ const_rstringstream::const_rstringstream(const char* initialValue)
     // construct with default value (enforced by the behavior of device ID open)
     open(initialValue);
 }
-const_rstringstream::const_rstringstream(const str& strDevice)
+const_rstringstream::const_rstringstream(const generic_string& strDevice)
 {
     // construct with non-owned device
     open(strDevice);
 }
-bool const_rstringstream::_openDevice(str* device,const char* deviceID)
+bool const_rstringstream::_openDevice(generic_string* device,const char* deviceID)
 {
     *device = deviceID;
     return true; // always succeeds
@@ -102,7 +102,7 @@ rbinstringstream::rbinstringstream(const char* initialValue)
     // construct with default value (enforced by the behavior of device ID open)
     open(initialValue);
 }
-rbinstringstream::rbinstringstream(str& strDevice)
+rbinstringstream::rbinstringstream(generic_string& strDevice)
 {
     // construct with non-owned device
     open(strDevice);
@@ -162,7 +162,7 @@ const_rbinstringstream::const_rbinstringstream(const char* initialValue)
     // construct with default value (enforced by the behavior of device ID open)
     open(initialValue);
 }
-const_rbinstringstream::const_rbinstringstream(const str& strDevice)
+const_rbinstringstream::const_rbinstringstream(const generic_string& strDevice)
 {
     // construct with non-owned device
     open(strDevice);
@@ -171,7 +171,7 @@ const_rbinstringstream::const_rbinstringstream(endianness endianFlag)
     : rbinstream(endianFlag)
 {
 }
-bool const_rbinstringstream::_openDevice(str* device,const char* deviceID)
+bool const_rbinstringstream::_openDevice(generic_string* device,const char* deviceID)
 {
     *device = deviceID;
     return true; // always succeeds

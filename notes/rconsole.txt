@@ -1,6 +1,47 @@
 rconsole
--------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------
 Console Capabilities:
         -> clear screen
-        -> change fore/back-color
+           (this is the console's native way to clear the screen)
+        -> colors
+           -> get/set fore/back-ground color information for cursor location
+           -> apply color information to back buffer           
         -> bell char
+        -> cursor
+           -> set position
+           -> get position
+        -> window
+           (some consoles resize their buffers automatically [like xterm] whereas others
+            such as ConHost.exe on Windows maintain a fixed buffer size and have a current
+            window size [view]. Therefore, this library is not concerned with the absolute
+            size of the window, merely the users current view of the console.
+           -> get current screen dimensions
+           -> set screen dimensions
+           -> event handling for window size change
+           -> set/get window title
+        -> echo input mode on|off
+        -> canonical vs. non-canonical mode
+        -> cursor settings
+           adjust size OR turn off blinking OR disable completely
+------------------------------------------------------------------------------------------------------------------------------------
+Terminfo:
+        Systems which implement terminals and puesdo-terminals (POSIX systems) use terminfo to describe
+the capabilities of a terminal. RLibrary implements terminfo by reading in ncurses-complient compiled
+binary terminfo databases. Rlibrary makes several critical assumptions based on the documentation for
+ncurses:
+        1. the compiled database file name is exported in the TERM environment variable
+        2. the compiled database file is located in one of the following locations, stored
+        in a subdirectory that uses the directory tree /parent/a, where 'a' is the starting
+        letter of the term name:
+               (these are searched in this order)
+               -> /lib/terminfo/
+               -> /etc/terminfo/
+               -> /usr/share/terminfo/
+               -> ~/.terminfo/
+               (if the TERMINFO environment variable is defined, then the search paths in
+               its value are searched as well)
+        4. the compiled format is binary compatible with the ncurses specification; since compiled
+        terminfo databases do not contain metadata which would identify the index of the entry in a 
+        certain section, rlibrary assumes that the order is consistent with the documentation for 
+        ncurses, specifically the order of the capabilities from the file include/Caps.
+-----------------------------------------------------------------------------------------------------------------------------------

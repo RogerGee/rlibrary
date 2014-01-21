@@ -34,13 +34,23 @@ namespace rtypes
         file_attribute_readonly = 0x0004 // use platform conventions to deny reading from a file
     };
 
+    /* file_open_mode
+     *  These flags define the open mode for a
+     * file, in other words, the creation disposition.
+     * Note: the append operation is not guarenteed to
+     * be atomic.
+     */
     enum file_open_mode
     {
+        file_create_exclusively, // create file if it does not already exist
+        file_create_always, // create file; if it exists, truncate it (overwrite)
+        file_open_always, // open existing OR create new file
+        file_open_append, // open existing and set file pointer to append OR create new file
+        file_open_existing, // open existing file only
+        file_truncate_existing, // open existing and truncate only
+        file_append_existing // open existing and set file pointer to append only
     };
 
-    enum file_create_mode
-    {
-    };
 }
 
 #endif

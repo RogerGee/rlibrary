@@ -28,11 +28,17 @@ using namespace rtypes;
 /* static */ void rlib_last_error::set(const char* message,int code)
 {
     // TODO: manage static data for each thread
-    static byte errObj[ sizeof(rlib_err_message) ];
-    new (errObj) rlib_err_message(message,code);
-    _set( reinterpret_cast<rlib_err_message*>(errObj) );
+    static byte errObj[ sizeof(rlib_error_message) ];
+    new (errObj) rlib_error_message(message,code);
+    _set( reinterpret_cast<rlib_error_message*>(errObj) );
 }
 /* static */ void rlib_last_error::_set(rlib_error* perr)
 {
     _lastError = perr;
+}
+/* static */ void rlib_last_error::_sysSet(int code)
+{
+    static byte errObj[ sizeof(rlib_system_error) ];
+    new (errObj) rlib_system_error(code);
+    _set( reinterpret_cast<rlib_system_error*>(errObj) );
 }

@@ -12,6 +12,20 @@ rtypes::rtype_string<CharType>::~rtype_string()
     // do nothing
 }
 template<typename CharType>
+CharType& rtypes::rtype_string<CharType>::at(dword index)
+{
+    if (index <= _buffer->size)
+        return _access(index);
+    throw 1;
+}
+template<typename CharType>
+const CharType& rtypes::rtype_string<CharType>::at(dword index) const
+{
+    if (index <= _buffer->size)
+        return _buffer->data[index];
+    throw 1;
+}
+template<typename CharType>
 rtypes::rtype_string<CharType>& rtypes::rtype_string<CharType>::operator =(CharType c)
 {
     _allocate(2);

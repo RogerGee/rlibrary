@@ -1,5 +1,20 @@
 RLibrary General Development Notes
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Stage 1:
+      filename
+      io_device
+      stdio
+      file
+      pipe
+        pipe
+        named_pipe
+      socket
+        connection
+        connection-less
+        raw
+      process
+      environment
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Conventions:
         - getters and setters - may apply zero to both of these overloads to an attribute:
           - const T& get_attribute() const (if possible)

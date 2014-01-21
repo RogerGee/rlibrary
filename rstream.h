@@ -102,6 +102,7 @@ namespace rtypes
         char peek(dword) const; // peek zero-based indexed char from stream
         void put(char c);
         void place(const stream_base&); // place contents of specified stream's local output into this stream's local output buffer
+        void repeat(char,dword times); // insert 'times' number of the specified character
 
         /* input iterators
          *  the input iterator is understood by the input device iter and the number of
@@ -349,9 +350,14 @@ namespace rtypes
      * Non-owned mode: in this mode, the stream operates on a device IO object that has been provided
      * for it by the user
      *
+     * A stream_device<T> has a second default template parameter which optionally can indicate the base
+     * type to use, in case the device type is a sub-class from some heirarchy. This is useful if you 
+     * want the stream device to handle any sub-class in unowned mode yet still be able to create a concrete
+     * object of one of the sub-classes in the heirarchy.
+     *
      * A stream_device<T> has access to the rstream or rbinstream's stream buffer but nothing more.
      */
-    template<typename T>
+    template<typename T,typename BaseT = T>
     class stream_device : virtual protected stream_buffer
     {
     public:
@@ -389,12 +395,13 @@ namespace rtypes
                 _outDevice();
                 _flushInputBuffer();
                 _flushOutputBuffer();
-                if (_owned)
-                    _closeDevice();
                 if (obj._owned)
                 {
                     if (_owned)
+                    {
+                        _closeDevice();
                         *_device = *obj._device;
+                    }
                     else // forget old non-owned reference and create new owned device
                         _device = new T( *obj._device );
                 }
@@ -402,7 +409,7 @@ namespace rtypes
                 {
                     // copy the reference
                     if (_owned)
-                        delete _device;
+                        delete _device; // assume that the destructor will close the device
                     _device = obj._device;
                 }
                 _owned = obj._owned;
@@ -417,7 +424,7 @@ namespace rtypes
                 return _openDevice(deviceID);
             return false;
         }
-        void open(T& device) // note: no return status is necessary since the device is managed in another context
+        void open(BaseT& device) // note: no return status is necessary since the device is managed in another context
         {
             // open a non-owned device
             if (_owned)
@@ -456,12 +463,12 @@ namespace rtypes
             _closeEvent();
         }
 
-        T& get_device()
+        BaseT& get_device()
         { return *_device; }
-        const T& get_device() const
+        const BaseT& get_device() const
         { return *_device; }
     protected:
-        T* _device;
+        BaseT* _device;
 
         bool _isOwned()
         { return _owned; }
@@ -507,14 +514,20 @@ namespace rtypes
      * Non-owned mode: in this mode, the stream operates on a device IO object that has been provided
      * for it by the user
      *
+     * A stream_device<T> has a second default template parameter which optionally can indicate the base
+     * type to use, in case the device type is a sub-class from some heirarchy. This is useful if you 
+     * want the stream device to handle any sub-class in unowned mode yet still be able to create a concrete
+     * object of one of the sub-classes in the heirarchy.
+     *
      * A const_stream_device<T> may have a non-const open operation. In anticipation of this, the interface member
      * function _openDevice accepts a non-const pointer to the const_stream_device<T>'s device object. This way, the
      * stream device can perform a non-const open operation. (This is implemented merely has a const_cast from _device.)
      *
      * A const_stream_device<T> has access to the rstream or rbinstream's stream buffer but nothing more and
-     * may only read into that buffer. If an rstream or rbinstream is using a const_stream_device, then
+     * may only read into that buffer. If an rstream or rbinstream is using a const_stream_device, then the well-defined
+     * behavior is to implement _outDevice as taking no action.
      */
-    template<typename T>
+    template<typename T,typename BaseT = T>
     class const_stream_device : virtual protected stream_buffer
     {
     public:
@@ -544,13 +557,41 @@ namespace rtypes
                 delete _device;
         }
 
+        const_stream_device& operator =(const const_stream_device& obj)
+        {
+            if (this != &obj)
+            {
+                // clear input buffer
+                _flushInputBuffer();
+                if (obj._owned)
+                {
+                    if (_owned)
+                    {
+                        _closeDevice();
+                        *const_cast<BaseT*>(_device) = *obj._device;
+                    }
+                    else // forget old non-owned reference and create new owned device
+                        _device = new T( *obj._device );
+                }
+                else
+                {
+                    // copy the reference
+                    if (_owned)
+                        delete _device; // assume that the destructor will close the device
+                    _device = obj._device;
+                }
+                _owned = obj._owned;
+            }
+            return *this;
+        }
+
         bool open(const char* pDeviceID)
         {
             if (_owned)
-                return _openDevice(const_cast<T*>(_device),pDeviceID);
+                return _openDevice(const_cast<BaseT*>(_device),pDeviceID);
             return false;
         }
-        void open(const T& device)
+        void open(const BaseT& device)
         {
             // open a non-owned device
             if (_owned)
@@ -591,10 +632,10 @@ namespace rtypes
             _closeEvent();
         }
 
-        const T& get_device() const
+        const BaseT& get_device() const
         { return *_device; }
     protected:
-        const T* _device;
+        const BaseT* _device;
 
         bool _isOwned() const
         { return _owned; }
@@ -616,7 +657,7 @@ namespace rtypes
          *  is invoked each time a stream is being closed. This allows the stream's derived implementation to perform any
          *  needed close action. The default behavior of this member function is to do nothing.
          */
-        virtual bool _openDevice(T* mutableDevice,const char* deviceID) = 0;
+        virtual bool _openDevice(BaseT* mutableDevice,const char* deviceID) = 0;
         virtual void _closeDevice() = 0;
         virtual void _closeEvent() {}
     };

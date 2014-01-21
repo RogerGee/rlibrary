@@ -1,0 +1,33 @@
+rfile
+------------------------------------------------------------------------------------------------------------------------------------
+file operations:
+     Opening:
+        Opening under riodevice: open, open_input, open_output 'this determines access mode
+        Opening under file: open(..., create_disposition), open_input(..., create_disposition), open_output(..., create_disposition)
+        Open overloads:
+             open(const char* = NULL) 'create new or open existing file for reading and writing; file pointer at 0
+             open(const char*,file_open_flag) 'open or create file based on flag; file pointer initial location determined by flag
+        Create disposition: (file open mode)
+               - create exclusively 'open fails if file already exists
+                 O_CREAT | O_EXCL
+                 CREATE_NEW
+               - create always 'sets existing file to zero OR creates new file
+                 O_CREAT | O_TRUNC
+                 CREATE_ALWAYS
+               - open always 'always opens existing or creates new
+                 O_CREAT
+                 OPEN_ALWAYS
+               - open append 'always opens existing for append or creates new
+                 O_CREAT
+                 OPEN_ALWAYS
+                 (set file pointer to append)
+               - open existing 'only open an existing file
+                 /* no flag required (default) */
+                 OPEN_EXISTING
+               - open truncate existing 'open an existing file for truncate; removes all data and sets file pointer to zero
+                 O_TRUNC
+                 TRUNCATE_EXISTING
+               - open append existing 'open a file for append only if it exists
+                 OPEN_EXISTING
+                 (set file pointer to append)
+------------------------------------------------------------------------------------------------------------------------------------

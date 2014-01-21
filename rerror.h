@@ -7,35 +7,40 @@ namespace rtypes
 {
     struct rlib_error
     {
-        rlib_error()
-            : code(1) {}
-        rlib_error(int errcode)
-            : code(errcode) {}
-
         virtual const char* message() const
         { return "An unspecified error occurred in rlibrary."; }
 
-        int code;
+        static int code()
+        { return 1; }
     };
-    struct rlib_err_message : rlib_error
+    struct rlib_error_message : rlib_error
     {
-        rlib_err_message(const char* sourceMessage)
+        rlib_error_message(const char* sourceMessage)
             : _msg(sourceMessage) {}
-        rlib_err_message(const char* sourceMessage,int errcode)
-            : rlib_error(errcode), _msg(sourceMessage) {}
+        rlib_error_message(const char* sourceMessage,int errCode)
+            : _msg(sourceMessage), _code(errCode) {}
 
         virtual const char* message() const
         { return _msg.c_str(); }
-    private:
+
+        int code() const
+        { return _code; }
+    protected:
         str _msg;
+        int _code;
+    };
+    struct rlib_system_error : rlib_error_message
+    {
+        rlib_system_error(int errCode)
+            : rlib_error_message("An unspecified system error occurred in rlibrary.",errCode) {}
     };
     struct operation_successful_error : rlib_error
     {
-        operation_successful_error()
-            : rlib_error(0) {}
-
         virtual const char* message() const
         { return "The operation completed successfully."; }
+
+        static int code()
+        { return 0; }
     };
     struct undefined_operation_error : rlib_error
     {
@@ -86,6 +91,11 @@ namespace rtypes
     {
         virtual const char* message() const
         { return "Access was denied to the specified resource."; }
+    };
+    struct sharing_error : rlib_error
+    {
+        virtual const char* message() const
+        { return "Sharing access was denied to the specified resource."; }
     };
     struct directory_creation_not_supported_error : rlib_error
     {

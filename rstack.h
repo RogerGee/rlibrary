@@ -24,6 +24,13 @@ namespace rtypes
             _virtAlloc(_size()-1);
             return _getData()[_size()];
         }
+
+        void pop_range(dword amount)
+        {
+            if (amount >= _size())
+                amount = _size();
+            _virtAlloc(_size() - amount);
+        }
                 
         T& peek()
         { return _getData()[_size()-1]; }

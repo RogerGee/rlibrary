@@ -32,7 +32,7 @@ using namespace rtypes;
         set<invalid_resource_error>();
     // set undocumented error
     else
-        set<rlib_error>(errno);
+        _sysSet(errno);
 }
 /* static */ void rlib_last_error::switch_throw()
 {
@@ -65,5 +65,5 @@ using namespace rtypes;
         throw invalid_resource_error();
     }    
     // throw undocumented error
-    throw rlib_error(errno);
+    throw rlib_system_error(errno);
 }

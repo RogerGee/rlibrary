@@ -21,8 +21,6 @@ namespace rtypes
 
         template<typename T>
         static void set();
-        template<typename T,typename U>
-        static void set(const U&);
         static void set(const char* message,int code = 1);
 
         static void switch_set();
@@ -31,10 +29,11 @@ namespace rtypes
         rlib_last_error();
         rlib_last_error& operator =(const rlib_last_error&);
 
+        static void _set(rlib_error*);
+        static void _sysSet(int code);
+
         // TODO: manage a last error for each thread
         static rlib_error* _lastError;
-
-        static void _set(rlib_error*);
     };
 }
 
@@ -45,14 +44,6 @@ template<typename T>
     static byte errObj[ sizeof(T) ];
     new (errObj) T();
     // perform static type checking for rlib_error types
-    _set( static_cast<rlib_error*> (reinterpret_cast<T*>(errObj)) );
-}
-template<typename T,typename U>
-/* static */ void rtypes::rlib_last_error::set(const U& param)
-{
-    // TODO: manage static data for each thread
-    static byte errObj[ sizeof(T) ];
-    new (errObj) T(param);
     _set( static_cast<rlib_error*> (reinterpret_cast<T*>(errObj)) );
 }
 

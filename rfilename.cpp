@@ -299,7 +299,7 @@ filename::filename(const char* pathLocation,const char* name)
 filename::filename(const generic_string& pathLocation,const generic_string& name)
     : _path(pathLocation)
 {
-    str source = name;
+    str source(name);
     _trunLeader(source);
     // should be a relative path string, else an error will be thrown
     _path.append_name(source);
@@ -541,7 +541,7 @@ void filename::set_full_name(const generic_string& name)
     // to the filename; everything before is assumed
     // to be the path; getting the component is system
     // specific due to root directory issues
-    str cpy = name;
+    str cpy(name);
     _trunLeader(cpy);
     _path = cpy;
 }

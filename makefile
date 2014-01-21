@@ -11,6 +11,8 @@ include rlibrary-build-vars.mk
 UTILITY_OBJ_files = $(addprefix $(OBJDIR)/,rutil_def_memory.o rutil_strcmp.o)
 # (rlibrary/integration)
 INTEGRATION_OBJ_files = $(addprefix $(OBJDIR)/,rintrg_ostream_str.o rintrg_istream_str.o)
+# (rlibrary/impl)
+#IMPL_OBJ_files = $(addprefix $(OBJDIR)/,terminfo.o)
 # (rlibrary)
 OBJ_files = $(addprefix $(OBJDIR)/,rstream.o rstreammanip.o rstringstream.o rlasterr.o rfilename.o riodevice.o rstdio.o) $(UTILITY_OBJ_files) $(INTEGRATION_OBJ_files)
 
@@ -33,12 +35,6 @@ $(OBJDIR)/rstringstream.o: rstringstream.cpp $(RSTRINGSTREAM_H)
 $(OBJDIR)/rlasterr.o: rlasterr.cpp rlasterr_posix.cpp $(RLASTERR_H)
 	$(BUILD_OBJ) $(OBJ_OUT)rlasterr.o rlasterr.cpp -D RLIBRARY_BUILD_POSIX
 
-$(UTILITY_OBJ_files): utility/*.cpp
-	make -C utility
-
-$(INTEGRATION_OBJ_files): integration/*.cpp
-	make -C integration
-
 # [sys]
 $(OBJDIR)/rfilename.o: rfilename.cpp rfilename_posix.cpp $(RFILENAME_H) $(RLASTERR_H)
 	$(BUILD_OBJ) $(OBJ_OUT)rfilename.o rfilename.cpp -D RLIBRARY_BUILD_POSIX
@@ -50,6 +46,16 @@ $(OBJDIR)/riodevice.o: riodevice.cpp riodevice_posix.cpp $(RIODEVICE_H) $(RLASTE
 # [sys]
 $(OBJDIR)/rstdio.o: rstdio.cpp rstdio_posix.cpp $(RSTDIO_H) $(RSTREAMMANIP_H)
 	$(BUILD_OBJ) $(OBJ_OUT)rstdio.o rstdio.cpp -D RLIBRARY_BUILD_POSIX
+
+# build other components of the library in subdirectories
+$(UTILITY_OBJ_files): utility/*.cpp
+	make -C utility
+
+$(INTEGRATION_OBJ_files): integration/*.cpp
+	make -C integration
+
+#$(IMPL_OBJ_files): impl/*.cpp impl/*.h
+#	make -C impl
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)

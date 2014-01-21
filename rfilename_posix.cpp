@@ -633,7 +633,7 @@ void path::_checkParts()
     while ( ::getcwd(&outDir[0],outDir.allocation_size()) == NULL )
     {
         if (errno != ERANGE)
-            throw rlib_error(errno);
+            throw rlib_system_error(errno);
         outDir.resize( outDir.capacity()*2 );
     }
     i = 0;

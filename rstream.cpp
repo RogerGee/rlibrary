@@ -106,6 +106,11 @@ void stream_base::place(const stream_base& obj)
     const char* data = &obj._bufOut.peek();
     _bufOut.push_range(data,len);
 }
+void stream_base::repeat(char c,dword times)
+{
+    for (dword i = 0;i<times;i++)
+        _bufOut.push(c);
+}
 void stream_base::set_input_iter(dword iter)
 {
     int amount = int(iter) - int(get_input_iter());
@@ -118,14 +123,14 @@ void stream_base::set_input_iter(dword iter)
         _bufIn.pop_range(amount);
     else
     {
-        amount -= _bufIn.size();
-        _flushInputBuffer(); // pop past everything in input buffer
+        amount -= _bufIn.size(); // pop past everything in input buffer
+        _flushInputBuffer();
         _ideviceIter += amount;
     }
 }
 void stream_base::set_output_iter(dword iter)
 {
-    int amount = int(iter) - int(get_input_iter());
+    int amount = int(iter) - int(get_output_iter());
     if (amount < 0)
     {
         flush_output(); // any data assumed to have been intended for previous offset destination
@@ -136,7 +141,7 @@ void stream_base::set_output_iter(dword iter)
     else
     {
         amount -= _bufOut.size();
-        _flushOutputBuffer();
+        _flushOutputBuffer(); // data is not written to device
         _odeviceIter += amount;
     }
 }
