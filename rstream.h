@@ -285,6 +285,12 @@ namespace rtypes
         big // most significant byte first
     };
 
+    enum binary_string_input_format
+    {
+        binary_string_capacity, // reads in a the capacity of a string object
+        binary_string_null_terminated // reads until a null character is found
+    };
+
     /* rbinstream
      *  represents a stream that provides a binary interface to
      * an underlying stream buffer
@@ -328,8 +334,10 @@ namespace rtypes
         rbinstream& operator <<(const char*);
         rbinstream& operator <<(const generic_string&);
         rbinstream& operator <<(endianness);
+        rbinstream& operator <<(binary_string_input_format);
     private:
         endianness _endianFlag;
+        binary_string_input_format _stringInputFormat;
 
         template<class Numeric>
         void _pushBackBinaryOrder(Numeric);

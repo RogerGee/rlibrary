@@ -85,8 +85,19 @@ path& path::operator =(const generic_string& pathName)
 }
 path& path::operator +=(const char* component)
 {
-    str item(component);
-    return *this += item;
+    if (component[0])
+    {
+        if (component[0] != PATH_SEP)
+        {
+            if (_parts[0].length()>0 && _parts[0][_parts[0].length()-1]!=PATH_SEP)
+                _parts[0] += PATH_SEP;
+            _parts[0] += component;
+            _checkParts();
+        }
+        else
+            throw undefined_operation_error();
+    }
+    return *this;
 }
 path& path::operator +=(const generic_string& component)
 {
@@ -94,7 +105,7 @@ path& path::operator +=(const generic_string& component)
     {
         if (component[0] != PATH_SEP)
         {
-            if (_parts[0].length()>0 && _parts[0][0]!=PATH_SEP)
+            if (_parts[0].length()>0 && _parts[0][_parts[0].length()-1]!=PATH_SEP)
                 _parts[0] += PATH_SEP;
             _parts[0] += component;
             _checkParts();
@@ -248,6 +259,10 @@ file_entry path::get_entry_info() const
     if (entry.get_kind() == kind_directory)
         return entry;
     throw does_not_exist_error();
+}
+void path::append_name(const char* pn)
+{
+    this->operator +=(pn);
 }
 void path::append_name(const generic_string& n)
 {

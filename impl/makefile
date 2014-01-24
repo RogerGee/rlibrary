@@ -9,6 +9,7 @@ PREV_OBJ_OUT = -o $(PREVOBJDIR)/
 
 OBJECT_FILES = terminfo.o
 OBJECTS = $(addprefix $(PREVOBJDIR)/,$(OBJECT_FILES))
+BUILD_OBJ := $(BUILD_OBJ) -I..
 
 all: $(OBJECTS)
 

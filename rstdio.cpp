@@ -4,6 +4,7 @@
  *   RLIBRARY_BUILD_WIN32 - build targeting Windows API
  */
 #include "rstdio.h"
+#include "rutility.h"
 
 // define target-specific code
 //  -> Gets: 'using namespace rtypes'
@@ -75,6 +76,11 @@ standard_device& standard_device::operator =(const standard_device& device)
         _lastOp = is_valid_context() ? no_operation : no_device;
     }
     return *this;
+}
+void standard_device::write_error(const char* stringBuffer)
+{
+    size_type t = rutil_strlen(stringBuffer);
+    _writeErrBuffer(stringBuffer,t);
 }
 void standard_device::redirect(const standard_device& device)
 {

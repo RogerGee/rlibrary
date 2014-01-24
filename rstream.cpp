@@ -913,10 +913,12 @@ template<class Numeric>
 rbinstream::rbinstream()
 {
     _endianFlag = little;
+    _stringInputFormat = binary_string_capacity;
 }
 rbinstream::rbinstream(endianness e)
 {
     _endianFlag = e;
+    _stringInputFormat = binary_string_capacity;
 }
 
 rbinstream& rbinstream::operator >>(bool& var)
@@ -1101,19 +1103,29 @@ rbinstream& rbinstream::operator >>(void*& var)
 }
 rbinstream& rbinstream::operator >>(generic_string& var)
 {
-    // read the capacity of the string object
-    dword i;
-    for (i = 0;i<var.capacity();i++)
+    // read based on the string input format
+    if (_stringInputFormat == binary_string_capacity)
     {
-        if (!_popInput(var[i]))
+        dword i;
+        for (i = 0;i<var.capacity();i++)
         {
-            _lastSuccess = false;
-            var.resize(i); // let the string be representative of what was read
-            return *this;
+            if (!_popInput(var[i]))
+            {
+                _lastSuccess = false;
+                var.resize(i); // let the string be representative of what was read
+                return *this;
+            }
         }
+        var.resize(i);
+        _lastSuccess = var.size() == var.capacity();
     }
-    var.resize(i);
-    _lastSuccess = true;
+    else if (_stringInputFormat == binary_string_null_terminated)
+    {
+        char c = -1;
+        while (_popInput(c) && c!=0)
+            var.push_back(c);
+        _lastSuccess = c==0;
+    }
     return *this;
 }
 rbinstream& rbinstream::operator <<(bool b)
@@ -1226,6 +1238,11 @@ rbinstream& rbinstream::operator <<(const generic_string& s)
 rbinstream& rbinstream::operator <<(endianness flag)
 {
     _endianFlag = flag;
+    return *this;
+}
+rbinstream& rbinstream::operator <<(binary_string_input_format flag)
+{
+    _stringInputFormat = flag;
     return *this;
 }
 template<class Numeric>

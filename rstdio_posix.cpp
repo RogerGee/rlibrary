@@ -24,7 +24,7 @@ bool standard_device::clear_screen()
     }
     return false;
 }
-void standard_device::_writeErrBuffer(const void* buffer,dword length)
+void standard_device::_writeErrBuffer(const void* buffer,size_type length)
 {
     if (_error != NULL)
     {
@@ -43,7 +43,7 @@ void standard_device::_writeErrBuffer(const void* buffer,dword length)
         else
         {
             _lastOp = success_write;
-            _byteCount = dword(bytesWrote);
+            _byteCount = size_type(bytesWrote);
         }
     }
     else

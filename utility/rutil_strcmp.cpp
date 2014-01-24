@@ -1,4 +1,4 @@
-#include "../rutility.h"
+#include "rutility.h"
 using namespace rtypes;
 
 // compare c-style strings

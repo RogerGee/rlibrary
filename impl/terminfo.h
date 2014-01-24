@@ -1,7 +1,7 @@
 // terminfo.h - rlibrary terminfo implementation
 #ifndef RLIB_TERMINFO_H
 #define RLIB_TERMINFO_H
-#include "rstringstream.h"
+#include "rstream.h"
 #include "rdynarray.h"
 
 namespace rtypes
@@ -65,11 +65,12 @@ namespace rtypes
 
         /* END CAPS */
 
-        /* terminfo_lookup_error
-         *  dummy class to indicate that a 
-         * capability was not found for the 
-         * current terminal
+        /* dummy classes for terminfo errors
+         *  - terminfo_environment_error: TERM environment not set up
+         *  - terminfo_lookup_error: capability was not found
          */
+        class terminfo_environment_error { /* ... */ };
+        class terminfo_parse_error { /* ... */ };
         class terminfo_lookup_error { /* ... */ };
 
         /* terminfo
@@ -90,6 +91,12 @@ namespace rtypes
             word operator [](term_numeric_cap) const;
             terminfo_sequence operator [](term_string_cap) const;
 
+            /* this name list contains different aliases
+             *  for a terminal separated by `|'
+             */
+            const str& get_name_list() const
+            { return _name; }
+
             int boolean_cap_count() const
             { return _booleanCaps.size(); }
             int numeric_cap_count() const
@@ -102,6 +109,8 @@ namespace rtypes
             dynamic_array<bool> _booleanCaps;
             dynamic_array<word> _numericCaps;
             dynamic_array<string> _stringCaps;
+
+            bool _read(rbinstream&);
         };
     }
 }

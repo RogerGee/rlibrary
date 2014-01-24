@@ -1,4 +1,4 @@
-#include "../rutility.h"
+#include "rutility.h"
 using namespace rtypes;
 
 void rtypes::rutil_def_memory(void* pdata,dword size,byte val)

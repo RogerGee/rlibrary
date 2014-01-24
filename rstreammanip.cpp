@@ -1,6 +1,18 @@
 #include "rstreammanip.h"
 using namespace rtypes;
 
+// rtypes::_rstream_flush_manipulator
+void _rstream_flush_manipulator::operation(rstream& stream) const
+{
+    if ( stream.does_buffer_output() )
+        stream.flush_output();
+}
+void _rstream_flush_manipulator::operation(rbinstream& stream) const
+{
+    if ( stream.does_buffer_output() )
+        stream.flush_output();
+}
+
 // rtypes::_rstream_endflush_manipulator
 void _rstream_endflush_manipulator::operation(rstream& stream) const
 {

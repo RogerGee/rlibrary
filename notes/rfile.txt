@@ -7,6 +7,19 @@ file operations:
         Open overloads:
              open(const char* = NULL) 'create new or open existing file for reading and writing; file pointer at 0
              open(const char*,file_open_flag) 'open or create file based on flag; file pointer initial location determined by flag
+             (same for,)
+             open_input
+             open_output
+          File Locking:
+             Windows API supports file locking directly through CreateFile (indeed, it's not even optional to specify
+             a file share mode). On linux, a similar effect is accomplished through file locking using flock and fcntl.
+             File locking is specified optionally in the creation/opening of a file using rtypes::file. On Windows, the
+             share mode FileShareNone will be used by default if the locking overloads are not called. The locking overloads
+             look like so:
+
+             On POSIX implementations, the lock is performed immediately after the file is created. The API call will block until
+             it gains access to the file or fails.
+
         Create disposition: (file open mode)
                - create exclusively 'open fails if file already exists
                  O_CREAT | O_EXCL
@@ -30,4 +43,11 @@ file operations:
                - open append existing 'open a file for append only if it exists
                  OPEN_EXISTING
                  (set file pointer to append)
+
+      Editing:
+        Truncate: (to size or zero)
+        Resize: (to non-zero size)
+        Set File Pointer:
+        Set File Permissions:
+        
 ------------------------------------------------------------------------------------------------------------------------------------

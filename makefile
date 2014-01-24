@@ -8,13 +8,13 @@ include rlibrary-build-vars.mk
 
 # object file lists
 # (rlibrary/utility)
-UTILITY_OBJ_files = $(addprefix $(OBJDIR)/,rutil_def_memory.o rutil_strcmp.o)
+UTILITY_OBJ_files = $(addprefix $(OBJDIR)/,rutil_def_memory.o rutil_strcmp.o rutil_strlen.o rutil_strcpy.o rutil_strncpy.o)
 # (rlibrary/integration)
 INTEGRATION_OBJ_files = $(addprefix $(OBJDIR)/,rintrg_ostream_str.o rintrg_istream_str.o)
 # (rlibrary/impl)
-#IMPL_OBJ_files = $(addprefix $(OBJDIR)/,terminfo.o)
+IMPL_OBJ_files = $(addprefix $(OBJDIR)/,terminfo.o)
 # (rlibrary)
-OBJ_files = $(addprefix $(OBJDIR)/,rstream.o rstreammanip.o rstringstream.o rlasterr.o rfilename.o riodevice.o rstdio.o) $(UTILITY_OBJ_files) $(INTEGRATION_OBJ_files)
+OBJ_files = $(addprefix $(OBJDIR)/,rstream.o rstreammanip.o rstringstream.o rlasterr.o rfilename.o riodevice.o rstdio.o) $(UTILITY_OBJ_files) $(INTEGRATION_OBJ_files) $(IMPL_OBJ_files)
 
 # library file
 LIB_rlibrary = $(addprefix $(LIBDIR)/,librlibrary.a)
@@ -54,8 +54,8 @@ $(UTILITY_OBJ_files): utility/*.cpp
 $(INTEGRATION_OBJ_files): integration/*.cpp
 	make -C integration
 
-#$(IMPL_OBJ_files): impl/*.cpp impl/*.h
-#	make -C impl
+$(IMPL_OBJ_files): impl/*.cpp impl/*.h
+	make -C impl
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)

@@ -70,17 +70,18 @@ namespace rtypes
 
         void read(generic_string& buffer) const // reads (at most) the capacity of the specified string object; the string is resized to fit the actual amount read
         { _readBuffer(&buffer[0],buffer.capacity()), buffer.resize(_byteCount); }
-        void read(void* buffer,dword bytesToRead) const // reads (at most) the specified number of bytes into the specified buffer
+        void read(void* buffer,size_type bytesToRead) const // reads (at most) the specified number of bytes into the specified buffer
         { _readBuffer(buffer,bytesToRead); }
-        str read(dword bytesToRead = 0) const; // reads the specified number of bytes from the device into a string buffer and returns the result
+        str read(size_type bytesToRead = 0) const; // reads the specified number of bytes from the device into a string buffer and returns the result
         void write(const generic_string& buffer) // writes the size of the specified string buffer to the device
         { _writeBuffer(buffer.c_str(),buffer.size()); }
-        void write(const void* buffer,dword length) // writes the specified buffer to the device
+        void write(const char* stringBuffer); // writes null-terminated string buffer to the device
+        void write(const void* buffer,size_type length) // writes the specified buffer to the device
         { _writeBuffer(buffer,length); }
 
         io_operation_flag get_last_operation_status() const // returns the last operation status flag
         { return _lastOp; }
-        dword get_last_byte_count() const // returns the last number of bytes processed
+        size_type get_last_byte_count() const // returns the last number of bytes processed
         { return _byteCount; }
 
         bool open(const char* deviceID = NULL); // opens the device in some device-specific way using (if specified) a device string ID
@@ -117,11 +118,11 @@ namespace rtypes
         stack<io_resource*> _redirInput;
         stack<io_resource*> _redirOutput;
         mutable io_operation_flag _lastOp;
-        mutable dword _byteCount;
+        mutable size_type _byteCount;
 
         // generic read/write interface
-        virtual void _readBuffer(void* buffer,dword bytesToRead) const; // reads a buffer from the device [sys]
-        virtual void _writeBuffer(const void* buffer,dword length); // writes a buffer to the device [sys]
+        virtual void _readBuffer(void* buffer,size_type bytesToRead) const; // reads a buffer from the device [sys]
+        virtual void _writeBuffer(const void* buffer,size_type length); // writes a buffer to the device [sys]
 
         static int& _ResourceRef(io_resource*);
     private:

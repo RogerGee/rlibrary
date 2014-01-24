@@ -33,7 +33,7 @@ bool standard_device::clear_screen()
     }
     return false;
 }
-void standard_device::_writeErrBuffer(const void* buffer,dword length)
+void standard_device::_writeErrBuffer(const void* buffer,size_type length)
 {
     if (_error != NULL)
     {

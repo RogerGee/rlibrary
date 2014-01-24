@@ -5,6 +5,7 @@
  */
 #include "riodevice.h"
 #include "rlasterr.h"
+#include "rutility.h"
 
 // define target-independent constants
 
@@ -76,7 +77,7 @@ io_device::~io_device()
             _output = NULL;
     }
 }
-str io_device::read(dword bytesToRead) const
+str io_device::read(size_type bytesToRead) const
 {
     // I provide this overload as a higher-level convinience
     str buffer;
@@ -89,6 +90,11 @@ str io_device::read(dword bytesToRead) const
         _readBuffer(&buffer[0],buffer.size());
     }
     return buffer; // (trims extra bytes in buffer)
+}
+void io_device::write(const char* stringBuffer)
+{
+    size_type t = rutil_strlen(stringBuffer);
+    _writeBuffer(stringBuffer,t);
 }
 bool io_device::open(const char* deviceID)
 {

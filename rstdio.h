@@ -26,7 +26,8 @@ namespace rtypes
         // error IO operations
         void write_error(const generic_string& buffer) // writes the size of the specified string buffer to the device's error context
         { _writeErrBuffer(buffer.c_str(),buffer.size()); }
-        void write_error(const void* buffer,dword length) // writes the specified buffer to the device's error context
+        void write_error(const char* stringBuffer); // writes null-terminated string buffer to the device's error context
+        void write_error(const void* buffer,size_type length) // writes the specified buffer to the device's error context
         { _writeErrBuffer(buffer,length); }
 
         // error functionality
@@ -46,7 +47,7 @@ namespace rtypes
     protected:
         io_resource* _error;
 
-        virtual void _writeErrBuffer(const void* buffer,dword length); // write buffer to standard-error channel [sys]
+        virtual void _writeErrBuffer(const void* buffer,size_type length); // write buffer to standard-error channel [sys]
     private:
         stack<io_resource*> _redirError;
 
