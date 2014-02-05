@@ -7,11 +7,11 @@
 using namespace rtypes;
 
 // rtypes::io_resource
-io_resource::io_resource()
+io_resource::io_resource(bool closable)
     : _MyBase(-1)
 {
-    _reference = 0;
-    _closable = true;
+    _reference = 1; // set default reference to 1 use
+    _closable = closable;
 }
 io_resource::~io_resource()
 {
@@ -25,7 +25,7 @@ io_resource::~io_resource()
 }
 
 // rtypes::io_device
-void io_device::_readBuffer(void* buffer,dword bytesToRead) const
+void io_device::_readBuffer(void* buffer,size_type bytesToRead) const
 {
     if (_input != NULL)
     {
@@ -53,7 +53,7 @@ void io_device::_readBuffer(void* buffer,dword bytesToRead) const
         _byteCount = 0;
     }
 }
-void io_device::_writeBuffer(const void* buffer,dword length)
+void io_device::_writeBuffer(const void* buffer,size_type length)
 {
     if (_output != NULL)
     {

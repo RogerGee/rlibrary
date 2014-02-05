@@ -137,6 +137,11 @@ namespace rtypes
         virtual const char* message() const
         { return "The operation failed because the specified system resource value was invalid"; }
     };
+    struct bad_environment_error : rlib_error
+    {
+        virtual const char* message() const
+        { return "The operation failed because the environment was incorrect."; }
+    };
 }
 
 #endif

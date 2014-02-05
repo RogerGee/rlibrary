@@ -1,5 +1,5 @@
 /* rfilename.cpp
- *  Compile target platform flags:
+ *  Compile target framework flags:
  *   RLIBRARY_BUILD_POSIX - build targeting POSIX
  *   RLIBRARY_BUILD_WIN32 - build targeting Windows API
  */

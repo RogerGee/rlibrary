@@ -42,7 +42,7 @@ namespace rtypes
          * Gets the next zero-based indexed character from the input buffer; does not modify the state of the buffer
          */
         bool _peekInput(char&) const;
-        bool _peekInput(char&,dword) const;
+        bool _peekInput(char&,size_type) const;
 
         bool _hasInput() const
         { return !_bufIn.is_empty(); }
@@ -76,8 +76,8 @@ namespace rtypes
 
         // these iterators are provided both for derived implementation
         // and the implementation of _outDevice and _inDevice
-        mutable dword _ideviceIter;
-        dword _odeviceIter;
+        mutable size_type _ideviceIter;
+        size_type _odeviceIter;
     };
 
     /* stream_base
@@ -99,7 +99,7 @@ namespace rtypes
 
         char get();
         char peek() const;
-        char peek(dword) const; // peek zero-based indexed char from stream
+        char peek(size_type) const; // peek zero-based indexed char from stream
         void put(char c);
         void place(const stream_base&); // place contents of specified stream's local output into this stream's local output buffer
         void repeat(char,dword times); // insert 'times' number of the specified character
@@ -108,19 +108,19 @@ namespace rtypes
          *  the input iterator is understood by the input device iter and the number of
          *  in the input buffer
          */
-        dword get_input_iter() const
+        size_type get_input_iter() const
         { return _ideviceIter-_bufIn.size(); }
-        void seek_input_iter(int amount)
+        void seek_input_iter(ssize_type amount)
         { set_input_iter(get_input_iter()+amount); }
-        void set_input_iter(dword iter); // flushes input buffer
+        void set_input_iter(size_type iter); // flushes input buffer
         void reset_input_iter()
         { set_input_iter(0); }
 
-        dword get_output_iter() const
+        size_type get_output_iter() const
         { return _odeviceIter; }
-        void seek_output_iter(int amount)
+        void seek_output_iter(ssize_type amount)
         { set_output_iter(get_output_iter()+amount); }
-        void set_output_iter(dword iter); // flushes output buffer
+        void set_output_iter(size_type iter); // flushes output buffer
         void reset_output_iter()
         { set_output_iter(0); }
 

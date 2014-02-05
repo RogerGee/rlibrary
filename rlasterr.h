@@ -5,7 +5,6 @@
  */
 #ifndef RLASTERR_H
 #define RLASTERR_H
-#include <new>
 #include "rerror.h" // gets rtypestypes.h
 // TODO: include map functionality
 // TODO: include threading functionality

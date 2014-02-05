@@ -123,7 +123,7 @@ bool path::is_empty() const
             ++cnt;
         ::FindClose(hFound);
         if ( ::GetLastError() != ERROR_NO_MORE_FILES )
-            throw rlib_err_message("error ::FindNextFile");
+            throw rlib_error_message("error ::FindNextFile");
         return cnt <= 2;
     }
     // throw generic errors
@@ -560,7 +560,7 @@ void path::_checkParts()
     else if (len > 0)
         curDir.resize(len); // 'len' does not include null-terminator
     else // failure
-        throw rlib_error( int(::GetLastError()) );
+        throw rlib_system_error( int(::GetLastError()) );
     return curDir;
 }
 /* static */ str path::_getRel(const generic_string& origin,const generic_string& destination)

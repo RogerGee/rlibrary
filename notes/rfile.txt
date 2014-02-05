@@ -45,9 +45,20 @@ file operations:
                  (set file pointer to append)
 
       Editing:
+        Obtain file size:
         Truncate: (to size or zero)
         Resize: (to non-zero size)
-        Set File Pointer:
-        Set File Permissions:
-        
+        Get file pointer:
+        Set file pointer:
+        Seek file pointer:
+        Set file permissions:
+        Test end-of-file:
+
+        Errors:
+                open member functions set last error on error; constructors will throw errors [standard io_device functionality
+implemented in classes derived from io_device (except for standard_device)]
+            Common errors that I care about:
+                   Access denied
+                   Does not exist
+                   
 ------------------------------------------------------------------------------------------------------------------------------------

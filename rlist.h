@@ -184,13 +184,13 @@ namespace rtypes
          *  add n number of default elements to the front
          *  of the list
          */
-        void grow_front(dword n);
+        void grow_front(size_type n);
 
         /* grow_back( cnt )
          *  add n number of default elements to the back
          *  of the list
          */
-        void grow_back(dword n);
+        void grow_back(size_type n);
 
         /* push_front( value )
          *  insert element at beginning of list
@@ -244,7 +244,7 @@ namespace rtypes
          *  times at the specified location
          */
         void insert(iterator position,const T& value);
-        void insert(iterator position,dword times,const T& value);
+        void insert(iterator position,size_type times,const T& value);
 
         T& insert_emplace(iterator position);
 
@@ -283,9 +283,9 @@ namespace rtypes
         /* size( ) [alt: length( )]
          *  get length of list with O(1) complexity
          */
-        dword size() const
+        size_type size() const
         { return _sz; }
-        dword length() const
+        size_type length() const
         { return _sz; }
 
         /* begin( )
@@ -303,11 +303,11 @@ namespace rtypes
         { return const_iterator(static_cast<const _Node*>(&_root)); }
     private:
         _Dummy _root;
-        dword _sz;
+        size_type _sz;
 
         void _deleteElements();
         void _copy(const _Self&);
-        static void _qsortRec(_Node**,dword);
+        static void _qsortRec(_Node**,size_type);
     };
 
     // operator overloads for list<T>

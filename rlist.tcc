@@ -34,9 +34,9 @@ void rtypes::list<T>::swap(_Self& obj)
 }
 
 template<typename T>
-void rtypes::list<T>::grow_front(dword cnt)
+void rtypes::list<T>::grow_front(size_type cnt)
 {
-    for (dword i = 0;i<cnt;i++)
+    for (size_type i = 0;i<cnt;i++)
     {
         _Node *n = new _Node;
         *n >> *_root.next;
@@ -48,9 +48,9 @@ void rtypes::list<T>::grow_front(dword cnt)
 }
 
 template<typename T>
-void rtypes::list<T>::grow_back(dword cnt)
+void rtypes::list<T>::grow_back(size_type cnt)
 {
-    for (dword i = 0;i<cnt;i++)
+    for (size_type i = 0;i<cnt;i++)
     {
         _Node *n = new _Node;
         *n >> _root;
@@ -179,9 +179,9 @@ void rtypes::list<T>::insert(iterator position,const T& value)
 }
 
 template<typename T>
-void rtypes::list<T>::insert(iterator position,dword times,const T& value)
+void rtypes::list<T>::insert(iterator position,size_type times,const T& value)
 {
-    for (dword i = 0;i<times;i++)
+    for (size_type i = 0;i<times;i++)
         insert(position++,value);
 }
 
@@ -251,7 +251,7 @@ void rtypes::list<T>::_copy(const _Self& obj)
 }
 
 template<typename T>
-/* static */void rtypes::list<T>::_qsortRec(_Node** ppHead,dword sz)
+/* static */void rtypes::list<T>::_qsortRec(_Node** ppHead,size_type sz)
 {
     if (sz > 1)
     {
@@ -263,9 +263,9 @@ template<typename T>
             *eqPos = NULL,
             *lessPos = NULL,
             *grtrPos = NULL;
-        dword   lessSz = 0,
+        size_type   lessSz = 0,
             grtrSz = 0;
-        for (dword i = 0;i<sz/2;i++)
+        for (size_type i = 0;i<sz/2;i++)
             piv = piv->next;
         if (piv->next != NULL)
             piv->next->prev = piv->prev;
@@ -350,9 +350,7 @@ template<typename T>
     }
 }
 
-/*
- * RList operator overloads
- */
+/* RList operator overloads */
 
 template<typename T>
 bool rtypes::operator ==(const rtypes::list<T>& left,const rtypes::list<T>& right)

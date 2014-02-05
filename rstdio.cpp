@@ -1,5 +1,5 @@
 /* rstdio.cpp
- *  Compile target platform flags:
+ *  Compile target framework flags:
  *   RLIBRARY_BUILD_POSIX - build targeting POSIX
  *   RLIBRARY_BUILD_WIN32 - build targeting Windows API
  */
@@ -205,20 +205,41 @@ void standard_device::_readAll(generic_string&) const
     // remains
     
 }
-void standard_device::_closeEvent(io_access_flag)
+void standard_device::_closeEvent(io_access_flag flag)
 {
+    // if the user called close(), which shuts down
+    // all IO contexts, then shutdown the error context
+    // as well
+    if (flag == all_access)
+        close_error();
+}
+
+// rtypes::standard_stream_device
+standard_stream_device::standard_stream_device()
+    : _okind(out) // use standard output by default
+{
+}
+void standard_stream_device::_clearDevice()
+{
+    _device->clear_screen();
+}
+bool standard_stream_device::_openDevice(const char*)
+{
+    return _device->open();
+}
+void standard_stream_device::_closeDevice()
+{
+    _device->close();
 }
 
 // rtypes::standard_stream
 standard_stream::standard_stream()
 {
-    // standard text streams buffer by default
-    _doesBuffer = true;
+    _doesBuffer = true; // standard text streams buffer by default
 }
 standard_stream::standard_stream(standard_device& device)
 {
-    // standard text streams buffer by default
-    _doesBuffer = true;
+    _doesBuffer = true; // standard text streams buffer by default
     open(device);
 }
 standard_stream::~standard_stream()
@@ -228,29 +249,15 @@ standard_stream::~standard_stream()
     if ( !_bufOut.is_empty() )
         flush_output();
 }
-void standard_stream::_clearDevice()
-{
-    _device->clear_screen();
-}
-bool standard_stream::_openDevice(const char*)
-{
-    return _device->open();
-}
-void standard_stream::_closeDevice()
-{
-    _device->close();
-}
 
 // rtypes::standard_binary_stream
 standard_binary_stream::standard_binary_stream()
 {
-    // standard text streams buffer by default
-    _doesBuffer = true;
+    _doesBuffer = true; // standard text streams buffer by default
 }
 standard_binary_stream::standard_binary_stream(standard_device& device)
 {
-    // standard text streams buffer by default
-    _doesBuffer = true;
+    _doesBuffer = true; // standard text streams buffer by default
     open(device);
 }
 standard_binary_stream::~standard_binary_stream()
@@ -260,15 +267,14 @@ standard_binary_stream::~standard_binary_stream()
     if ( !_bufOut.is_empty() )
         flush_output();
 }
-void standard_binary_stream::_clearDevice()
+
+rstream& rtypes::operator <<(standard_stream& stream,standard_stream_output_kind kind)
 {
-    _device->clear_screen();
+    stream.set_output_mode(kind);
+    return stream;
 }
-bool standard_binary_stream::_openDevice(const char*)
+rbinstream& rtypes::operator <<(standard_binary_stream& stream,standard_stream_output_kind kind)
 {
-    return _device->open();
-}
-void standard_binary_stream::_closeDevice()
-{
-    _device->close();
+    stream.set_output_mode(kind);
+    return stream;
 }

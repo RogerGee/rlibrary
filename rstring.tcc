@@ -12,14 +12,14 @@ rtypes::rtype_string<CharType>::~rtype_string()
     // do nothing
 }
 template<typename CharType>
-CharType& rtypes::rtype_string<CharType>::at(dword index)
+CharType& rtypes::rtype_string<CharType>::at(size_type index)
 {
     if (index <= _buffer->size)
         return _access(index);
     throw 1;
 }
 template<typename CharType>
-const CharType& rtypes::rtype_string<CharType>::at(dword index) const
+const CharType& rtypes::rtype_string<CharType>::at(size_type index) const
 {
     if (index <= _buffer->size)
         return _buffer->data[index];
@@ -55,11 +55,11 @@ rtypes::rtype_string<CharType>& rtypes::rtype_string<CharType>::operator +=(Char
 template<typename CharType>
 rtypes::rtype_string<CharType>& rtypes::rtype_string<CharType>::operator +=(const CharType* pcstr)
 {
-    dword len = 0, lastSize = size();
+    size_type len = 0, lastSize = size();
     while (pcstr[len])
         ++len;
     _allocate(lastSize + ++len); // add 1 to len to account for the null-terminator
-    for (dword i = 0;i<len;i++) // the terminator will be copied in from pcstr
+    for (size_type i = 0;i<len;i++) // the terminator will be copied in from pcstr
         _buffer->data[i+lastSize] = pcstr[i];
     _nullTerm();
     return *this;
@@ -67,9 +67,9 @@ rtypes::rtype_string<CharType>& rtypes::rtype_string<CharType>::operator +=(cons
 template<typename CharType>
 rtypes::rtype_string<CharType>& rtypes::rtype_string<CharType>::operator +=(const rtype_string<CharType>& obj)
 {
-    dword lastSz = size();
+    size_type lastSz = size();
     _allocate(lastSz+obj._buffer->size);
-    for (dword i = 0;i<obj._buffer->size;i++)
+    for (size_type i = 0;i<obj._buffer->size;i++)
         _buffer->data[i+lastSz] = obj[i];
     _nullTerm();
     return *this;
@@ -85,20 +85,20 @@ void rtypes::rtype_string<CharType>::append(CharType t)
 template<typename CharType>
 void rtypes::rtype_string<CharType>::append(const CharType* pcstr)
 {
-    dword len = 0, lastSize = size();
+    size_type len = 0, lastSize = size();
     while (pcstr[len])
         ++len;
     _allocate(_buffer->size+len);
-    for (dword i = 0;i<len;i++)
+    for (size_type i = 0;i<len;i++)
         _buffer->data[i+lastSize] = pcstr[i];
     _nullTerm();
 }
 template<typename CharType>
 void rtypes::rtype_string<CharType>::append(const rtype_string& obj)
 {
-    dword lastSz = _buffer->size;
+    size_type lastSz = _buffer->size;
     _allocate(_buffer->size+obj._buffer->size);
-    for (dword i = 0;i<obj._buffer->size;i++)
+    for (size_type i = 0;i<obj._buffer->size;i++)
         _buffer->data[i+lastSz] = obj[i];
     _nullTerm();
 }
@@ -125,7 +125,7 @@ void rtypes::rtype_string<CharType>::reset()
     _nullTerm();
 }
 template<typename CharType>
-bool rtypes::rtype_string<CharType>::truncate(dword desiredSize)
+bool rtypes::rtype_string<CharType>::truncate(size_type desiredSize)
 {
     if (desiredSize >= _buffer->size)
         return false;
@@ -134,7 +134,7 @@ bool rtypes::rtype_string<CharType>::truncate(dword desiredSize)
     return true;
 }
 template<typename CharType>
-void rtypes::rtype_string<CharType>::resize(dword newSize)
+void rtypes::rtype_string<CharType>::resize(size_type newSize)
 {
     if (newSize != _buffer->size)
     {
@@ -147,16 +147,16 @@ void rtypes::rtype_string<CharType>::_copy(const CharType* pcstr)
 {
     // calculate size, then invoke
     // virtual copy operation
-    dword len = 0;
+    size_type len = 0;
     while (pcstr[len] != 0)
         ++len;
     _copy(pcstr,++len); // include null-terminator
 }
 template<typename CharType>
-void rtypes::rtype_string<CharType>::_copy(const CharType* pcstr,dword len)
+void rtypes::rtype_string<CharType>::_copy(const CharType* pcstr,size_type len)
 {
     _allocate(len);
-    for (dword i = 0;i<len;i++)
+    for (size_type i = 0;i<len;i++)
         _buffer->data[i] = pcstr[i];
 }
 template<typename CharType>
@@ -180,7 +180,7 @@ rtypes::rtype_string<CharType>::_StringBuffer::~_StringBuffer()
         delete[] data;
 }
 template<typename CharType>
-void rtypes::rtype_string<CharType>::_StringBuffer::allocate(dword desiredSize)
+void rtypes::rtype_string<CharType>::_StringBuffer::allocate(size_type desiredSize)
 {
     if (desiredSize > size)
     {
@@ -189,15 +189,15 @@ void rtypes::rtype_string<CharType>::_StringBuffer::allocate(dword desiredSize)
         {
             // virtual allocation - enough space is already
             // allocated; adjust
-            dword dif = desiredSize - size;
+            size_type dif = desiredSize - size;
             extra -= dif;
             size += dif;
         }
         else
         {
             // reallocate to twice old allocation
-            dword allocSize = size + extra;
-            dword newSize = (allocSize==0 ? RSTRING_DEFAULT_ALLOCATION : allocSize*2);
+            size_type allocSize = size + extra;
+            size_type newSize = (allocSize==0 ? RSTRING_DEFAULT_ALLOCATION : allocSize*2);
             // adjust new size if not large enough
             if (newSize < desiredSize)
                 newSize = desiredSize;
@@ -206,7 +206,7 @@ void rtypes::rtype_string<CharType>::_StringBuffer::allocate(dword desiredSize)
             if (data != NULL)
             {
                 // copy old data
-                for (dword i = 0;i<size;i++)
+                for (size_type i = 0;i<size;i++)
                     newData[i] = data[i];
                 // delete old buffer
                 delete[] data;
@@ -223,7 +223,7 @@ void rtypes::rtype_string<CharType>::_StringBuffer::allocate(dword desiredSize)
     else if (desiredSize < size)
     {
         // virtual deallocation
-        dword dif = size - desiredSize;
+        size_type dif = size - desiredSize;
         extra += dif;
         size -= dif;
     }
@@ -277,7 +277,7 @@ rtypes::deep_string<CharType>::deep_string(const deep_string& obj)
     _copy(obj._buf.data,obj._buf.size);
 }
 template<typename CharType>
-rtypes::deep_string<CharType>::deep_string(dword allocSize)
+rtypes::deep_string<CharType>::deep_string(size_type allocSize)
 {
     // use statically-allocated buffer
     _buffer = &_buf;
@@ -345,7 +345,7 @@ rtypes::deep_string<CharType>& rtypes::deep_string<CharType>::operator +=(const 
     return *this;
 }
 template<typename CharType>
-void rtypes::deep_string<CharType>::_allocate(dword desiredSize)
+void rtypes::deep_string<CharType>::_allocate(size_type desiredSize)
 {
     _buf.allocate(desiredSize);
 }
@@ -390,7 +390,7 @@ rtypes::shallow_string<CharType>::shallow_string(const shallow_string& obj)
     ++static_cast<_StringBufferEx*>(_buffer)->reference; // increment reference
 }
 template<typename CharType>
-rtypes::shallow_string<CharType>::shallow_string(dword allocSize)
+rtypes::shallow_string<CharType>::shallow_string(size_type allocSize)
 {
     // set up new string buffer
     _buffer = new _StringBufferEx;
@@ -470,7 +470,7 @@ rtypes::shallow_string<CharType>& rtypes::shallow_string<CharType>::operator +=(
     return *this;
 }
 template<typename CharType>
-void rtypes::shallow_string<CharType>::_allocate(dword desiredSize)
+void rtypes::shallow_string<CharType>::_allocate(size_type desiredSize)
 {
     _StringBufferEx* pbuf = static_cast<_StringBufferEx*>(_buffer);
     if (pbuf->reference > 1)
@@ -481,7 +481,7 @@ void rtypes::shallow_string<CharType>::_allocate(dword desiredSize)
         _buffer = new _StringBufferEx;
         _buffer->allocate(desiredSize);
         // copy old data (as much or as little as possible)
-        for (dword i = 0;i<desiredSize && i<pbuf->size;i++)
+        for (size_type i = 0;i<desiredSize && i<pbuf->size;i++)
             _buffer->data[i] = pbuf->data[i];
     }
     else
@@ -510,7 +510,7 @@ void rtypes::shallow_string<CharType>::_deallocate()
     }
 }
 template<typename CharType>
-CharType& rtypes::shallow_string<CharType>::_access(dword index)
+CharType& rtypes::shallow_string<CharType>::_access(size_type index)
 {
     _StringBufferEx* pbuf = static_cast<_StringBufferEx*>(_buffer);
     if (pbuf->reference > 1)
@@ -520,7 +520,7 @@ CharType& rtypes::shallow_string<CharType>::_access(dword index)
         --pbuf->reference;
         _buffer = new _StringBufferEx;
         _buffer->allocate(pbuf->size);
-        for (dword i = 0;i<pbuf->size;i++)
+        for (size_type i = 0;i<pbuf->size;i++)
             _buffer->data[i] = pbuf->data[i];
     }
     return _buffer->data[index];
@@ -539,7 +539,7 @@ bool rtypes::operator ==(const rtype_string<CharType>& left,const rtype_string<C
 {
     if (left.size() == right.size())
     {
-        for (dword i = 0;i<left.size();i++)
+        for (size_type i = 0;i<left.size();i++)
             if (left[i] != right[i])
                 return false;
         return true;
@@ -549,12 +549,12 @@ bool rtypes::operator ==(const rtype_string<CharType>& left,const rtype_string<C
 template<typename CharType>
 bool rtypes::operator ==(const rtype_string<CharType>& left,const CharType* right)
 {
-    dword len = 0;
+    size_type len = 0;
     while (right[len])
         ++len;
     if (left.size() == len)
     {
-        for (dword i = 0;i<left.size();i++)
+        for (size_type i = 0;i<left.size();i++)
             if (left[i] != right[i])
                 return false;
         return true;
@@ -564,12 +564,12 @@ bool rtypes::operator ==(const rtype_string<CharType>& left,const CharType* righ
 template<typename CharType>
 bool rtypes::operator ==(const CharType* left,const rtype_string<CharType>& right)
 {
-    dword len = 0;
+    size_type len = 0;
     while (left[len])
         len++;
     if (len == right.size())
     {
-        for (dword i = 0;i<len;i++)
+        for (size_type i = 0;i<len;i++)
             if (left[i] != right[i])
                 return false;
         return true;
@@ -595,7 +595,7 @@ bool rtypes::operator !=(const CharType* left,const rtype_string<CharType>& righ
 template<typename CharType>
 bool rtypes::operator <(const rtype_string<CharType>& left,const rtype_string<CharType>& right)
 {
-    for (dword i = 0;i<left.size() && i<right.size();i++)
+    for (size_type i = 0;i<left.size() && i<right.size();i++)
         if ( left[i] < right[i] )
             return true;
         else if ( left[i] > right[i] )
@@ -605,10 +605,10 @@ bool rtypes::operator <(const rtype_string<CharType>& left,const rtype_string<Ch
 template<typename CharType>
 bool rtypes::operator <(const rtype_string<CharType>& left,const CharType* right)
 {
-    dword len = 0;
+    size_type len = 0;
     while (right[len])
         len++;
-    for (dword i = 0;i<left.size() && i<len;i++)
+    for (size_type i = 0;i<left.size() && i<len;i++)
         if ( left[i] < right[i] )
             return true;
         else if ( left[i] > right[i] )
@@ -618,10 +618,10 @@ bool rtypes::operator <(const rtype_string<CharType>& left,const CharType* right
 template<typename CharType>
 bool rtypes::operator <(const CharType* left,const rtype_string<CharType>& right)
 {
-    dword len = 0;
+    size_type len = 0;
     while (left[len])
         len++;
-    for (dword i = 0;i<len && i<right.size();i++)
+    for (size_type i = 0;i<len && i<right.size();i++)
         if ( left[i] < right[i] )
             return true;
         else if ( left[i] > right[i] )
@@ -646,7 +646,7 @@ bool rtypes::operator >=(const CharType* left,const rtype_string<CharType>& righ
 template<typename CharType>
 bool rtypes::operator >(const rtype_string<CharType>& left,const rtype_string<CharType>& right)
 {
-    for (dword i = 0;i<left.size() && i<right.size();i++)
+    for (size_type i = 0;i<left.size() && i<right.size();i++)
         if ( left[i] > right[i] )
             return true;
         else if ( left[i] < right[i] )
@@ -656,10 +656,10 @@ bool rtypes::operator >(const rtype_string<CharType>& left,const rtype_string<Ch
 template<typename CharType>
 bool rtypes::operator >(const rtype_string<CharType>& left,const CharType* right)
 {
-    dword len = 0;
+    size_type len = 0;
     while (right[len])
         len++;
-    for (dword i = 0;i<len && i<left.size();i++)
+    for (size_type i = 0;i<len && i<left.size();i++)
         if ( left[i] > right[i] )
             return true;
         else if ( left[i] < right[i] )
@@ -669,10 +669,10 @@ bool rtypes::operator >(const rtype_string<CharType>& left,const CharType* right
 template<typename CharType>
 bool rtypes::operator >(const CharType* left,const rtype_string<CharType>& right)
 {
-    dword len = 0;
+    size_type len = 0;
     while (left[len])
         len++;
-    for (dword i = 0;i<len && i<right.size();i++)
+    for (size_type i = 0;i<len && i<right.size();i++)
         if ( left[i] > right[i] )
             return true;
         else if ( left[i] < right[i] )

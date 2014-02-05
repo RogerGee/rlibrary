@@ -51,7 +51,7 @@ namespace rtypes
         /* size( )
          *  returns the number of elements in the set
          */
-        dword size() const
+        size_type size() const
         { return _l.size(); }
                 
         bool operator ==(const set& obj) const

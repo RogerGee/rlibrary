@@ -42,7 +42,7 @@ bool stream_buffer::_peekInput(char& var) const
     //else no input was available from source
     return false;
 }
-bool stream_buffer::_peekInput(char& var,dword i) const
+bool stream_buffer::_peekInput(char& var,size_type i) const
 {
     // attempt to read from local input buffer
     if ( _hasInput() && _bufIn.size()>i )
@@ -58,13 +58,13 @@ bool stream_buffer::_peekInput(char& var,dword i) const
 }
 void stream_buffer::_pushBackOutputString(const char* pcstr)
 {
-    dword i = 0;
+    size_type i = 0;
     while (pcstr[i])
         _bufOut.push( pcstr[i++] );
 }
 void stream_buffer::_pushBackOutputString(const generic_string& s)
 {
-    for (dword i = 0;i<s.size();i++)
+    for (size_type i = 0;i<s.size();i++)
         _bufOut.push(s[i]);
 }
 
@@ -85,7 +85,7 @@ char stream_base::peek() const
     _lastSuccess = _peekInput(c);
     return c;
 }
-char stream_base::peek(dword i) const
+char stream_base::peek(size_type i) const
 {
     char c = -1;
     _lastSuccess = _peekInput(c,i);
@@ -111,7 +111,7 @@ void stream_base::repeat(char c,dword times)
     for (dword i = 0;i<times;i++)
         _bufOut.push(c);
 }
-void stream_base::set_input_iter(dword iter)
+void stream_base::set_input_iter(size_type iter)
 {
     int amount = int(iter) - int(get_input_iter());
     if (amount < 0)
@@ -128,7 +128,7 @@ void stream_base::set_input_iter(dword iter)
         _ideviceIter += amount;
     }
 }
-void stream_base::set_output_iter(dword iter)
+void stream_base::set_output_iter(size_type iter)
 {
     int amount = int(iter) - int(get_output_iter());
     if (amount < 0)
@@ -267,7 +267,7 @@ rstream& rstream::operator >>(bool& var)
         }
         s.push_back(input);
     }
-    for (dword i = 0;i<s.length();i++)
+    for (size_type i = 0;i<s.length();i++)
         if (s[i]>='A' && s[i]<='Z')
             s[i] -= 'A', s[i] += 'a';
     _lastSuccess = true;
@@ -742,7 +742,6 @@ rstream& rstream::operator <<(const void* p)
 }
 rstream& rstream::operator <<(const char* cs)
 {
-    dword i = 0;
     _pushBackOutputString(cs);
     if (!_doesBuffer)
         _outDevice();
@@ -786,7 +785,7 @@ void rstream::_pushBackNumeric(Numeric n,bool isNeg,const char* prefix)
     {
         qword mask = 0; // will mask bits not needed by the size of Numeric
         qword q = n; // treat n (Numeric) as an unsigned value
-        for (dword i = 0;i<sizeof(Numeric);i++)
+        for (size_type i = 0;i<sizeof(Numeric);i++)
         {
             mask <<= 8;
             mask |= 0xff;
@@ -795,7 +794,7 @@ void rstream::_pushBackNumeric(Numeric n,bool isNeg,const char* prefix)
         _pushBackNumeric(q,false);// recursively call _toString to get negative rep for non-decimal rep number
         return;
     }
-    dword sz;
+    size_type sz;
     str conv, result;
     // assign prefixes
     if (prefix != NULL)
@@ -809,7 +808,7 @@ void rstream::_pushBackNumeric(Numeric n,bool isNeg,const char* prefix)
     if (_width > sz)
     {
         sz = _width - sz;
-        for (dword i = 0;i<sz;i++)
+        for (size_type i = 0;i<sz;i++)
             result.push_back(_fill);
     }
     // add converted numeric integer
@@ -829,7 +828,7 @@ Numeric rstream::_fromString(const str& s/* will have at least 1 char */,bool& s
     const char ucaseLetterBound = _repFlag>decimal ? 'A'+char(_repFlag-1) : -1;
     const char lcaseLetterBound = _repFlag>decimal ? 'a'+char(_repFlag-1) : -1;
     // go through each character; stop prematurely on bad character
-    for (dword i = (isNeg || (s[0]=='+' && s.size()>1) ? 1 : 0);i<s.size();i++)
+    for (size_type i = (isNeg || (s[0]=='+' && s.size()>1) ? 1 : 0);i<s.size();i++)
     {
         char digi = -1;
         if (s[i]>='0' && s[i]<=arabicBound)
@@ -944,7 +943,7 @@ rbinstream& rbinstream::operator >>(short& var)
 {
     str data(sizeof(short));
     // load data
-    for (dword i = 0;i<sizeof(short);i++)
+    for (size_type i = 0;i<sizeof(short);i++)
     {
         if (!_popInput(data[i]))
         {
@@ -960,7 +959,7 @@ rbinstream& rbinstream::operator >>(word& var)
 {
     str data(sizeof(word));
     // load data
-    for (dword i = 0;i<sizeof(word);i++)
+    for (size_type i = 0;i<sizeof(word);i++)
     {
         if (!_popInput(data[i]))
         {
@@ -976,7 +975,7 @@ rbinstream& rbinstream::operator >>(int& var)
 {
     str data(sizeof(int));
     // load data
-    for (dword i = 0;i<sizeof(int);i++)
+    for (size_type i = 0;i<sizeof(int);i++)
     {
         if (!_popInput(data[i]))
         {
@@ -992,7 +991,7 @@ rbinstream& rbinstream::operator >>(dword& var)
 {
     str data(sizeof(dword));
     // load data
-    for (dword i = 0;i<sizeof(dword);i++)
+    for (size_type i = 0;i<sizeof(dword);i++)
     {
         if (!_popInput(data[i]))
         {
@@ -1008,7 +1007,7 @@ rbinstream& rbinstream::operator >>(long& var)
 {
     str data(sizeof(long));
     // load data
-    for (dword i = 0;i<sizeof(long);i++)
+    for (size_type i = 0;i<sizeof(long);i++)
     {
         if (!_popInput(data[i]))
         {
@@ -1024,7 +1023,7 @@ rbinstream& rbinstream::operator >>(unsigned long& var)
 {
     str data(sizeof(unsigned long));
     // load data
-    for (dword i = 0;i<sizeof(unsigned long);i++)
+    for (size_type i = 0;i<sizeof(unsigned long);i++)
     {
         if (!_popInput(data[i]))
         {
@@ -1040,7 +1039,7 @@ rbinstream& rbinstream::operator >>(long long& var)
 {
     str data(sizeof(long long));
     // load data
-    for (dword i = 0;i<sizeof(long long);i++)
+    for (size_type i = 0;i<sizeof(long long);i++)
     {
         if (!_popInput(data[i]))
         {
@@ -1056,7 +1055,7 @@ rbinstream& rbinstream::operator >>(qword& var)
 {
     str data(sizeof(qword));
     // load data
-    for (dword i = 0;i<sizeof(qword);i++)
+    for (size_type i = 0;i<sizeof(qword);i++)
     {
         if (!_popInput(data[i]))
         {
@@ -1072,7 +1071,7 @@ rbinstream& rbinstream::operator >>(double& var)
 {
     str data( sizeof(double) );
     // load data
-    for (dword i = 0;i<sizeof(double);i++)
+    for (size_type i = 0;i<sizeof(double);i++)
     {
         if ( !_popInput(data[i]) )
         {
@@ -1089,7 +1088,7 @@ rbinstream& rbinstream::operator >>(void*& var)
 {
     str data(sizeof(void*));
     // load data
-    for (dword i = 0;i<sizeof(void*);i++)
+    for (size_type i = 0;i<sizeof(void*);i++)
     {
         if (!_popInput(data[i]))
         {
@@ -1106,7 +1105,7 @@ rbinstream& rbinstream::operator >>(generic_string& var)
     // read based on the string input format
     if (_stringInputFormat == binary_string_capacity)
     {
-        dword i;
+        size_type i;
         for (i = 0;i<var.capacity();i++)
         {
             if (!_popInput(var[i]))
@@ -1221,7 +1220,7 @@ rbinstream& rbinstream::operator <<(const void* p)
 }
 rbinstream& rbinstream::operator <<(const char* cs)
 {
-    dword i = 0;
+    size_type i = 0;
     while ( cs[i] )
         _pushBackOutput( cs[i++] );
     if (!_doesBuffer)
@@ -1250,15 +1249,15 @@ void rbinstream::_pushBackBinaryOrder(Numeric n)
 {
     // (assume endianness from _endianFlag)
     // divide n into its bytes and put into stream
-    int byteCnt = sizeof(Numeric);
+    ssize_type byteCnt = ssize_type( sizeof(Numeric) );
     if (_endianFlag==big)
     {// get most significant to least significant
-        for (int i = byteCnt-1;i>=0;i--)
+        for (ssize_type i = byteCnt-1;i>=0;i--)
             _pushBackOutput( (n>>(8*i))&0xff );
     }
     else if (_endianFlag==little)
     {// get least significant to most significant
-        for (int i = 0;i<byteCnt;i++)
+        for (ssize_type i = 0;i<byteCnt;i++)
             _pushBackOutput( (n>>(8*i))&0xff );
     }
 }
@@ -1267,7 +1266,7 @@ Numeric rbinstream::_fromString(const str& s,bool& success)
 {
     // (assume endianness from _endianFlag)
     Numeric val = 0;
-    dword byteCnt = sizeof(Numeric);
+    size_type byteCnt = sizeof(Numeric);
     if (s.size()!=byteCnt)
     {
         success = false;

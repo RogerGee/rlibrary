@@ -1,6 +1,8 @@
 // rtypestypes.h - provides basic types for rlibrary
 #ifndef RTYPESTYPES_H
 #define RTYPESTYPES_H
+#include <cstddef>
+#include <new>
 
 // macros
 #ifndef NULL
@@ -15,7 +17,8 @@ namespace rtypes
     typedef unsigned int dword;
     typedef unsigned long long qword;
 
-    typedef dword size_type;
+    typedef long long int ssize_type;
+    typedef std::size_t size_type;
     //
 
     // enumerations

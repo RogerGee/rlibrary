@@ -8,6 +8,7 @@
 #include "rstring.h"
 #include "rstack.h"
 #include "rstream.h"
+#include "rstreammanip.h" // these are needed for each io stream type
 
 namespace rtypes
 {
@@ -50,8 +51,7 @@ namespace rtypes
         friend class io_device;
         typedef resource<8> _MyBase;
     public:
-        io_resource(); // initialize an invalid resource in a system-specific manner [sys]
-        io_resource(void* defaultValue,bool performClose = true); // initialize a resource with the specified default value
+        io_resource(bool closable = true); // initialize an invalid resource in a system-specific manner with the specified closable state [sys]
         ~io_resource(); // closes the IO resource in a system-specific manner [sys] [terr]
     private:
         int _reference;
@@ -124,12 +124,15 @@ namespace rtypes
         virtual void _readBuffer(void* buffer,size_type bytesToRead) const; // reads a buffer from the device [sys]
         virtual void _writeBuffer(const void* buffer,size_type length); // writes a buffer to the device [sys]
 
+        const io_resource* _getValidContext() const;
+        io_resource* _getValidContext();
+
         static int& _ResourceRef(io_resource*);
     private:
         // abstract device interface
         virtual void _openEvent(const char* deviceID,
             io_access_flag accessKind,
-            dword** arguments = NULL,
+            void** arguments = NULL,
             dword argumentCount = 0) = 0; // opens a device in a system specific manner
         virtual void _readAll(generic_string& buffer) const = 0; // reads all available data from the device into the specified buffer, resizing as necessary
         virtual void _closeEvent(io_access_flag shutdownKind) = 0; // called whenever a device is completely shutdown

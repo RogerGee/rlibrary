@@ -12,7 +12,7 @@ namespace rtypes
     public:
         void push(const T& elem)
         {
-            dword oldSize = _size();
+            size_type oldSize = _size();
             _virtAlloc(oldSize+1);  
             _getData()[oldSize] = elem;
         }
@@ -25,7 +25,7 @@ namespace rtypes
             return _getData()[_size()];
         }
 
-        void pop_range(dword amount)
+        void pop_range(size_type amount)
         {
             if (amount >= _size())
                 amount = _size();
@@ -55,11 +55,11 @@ namespace rtypes
         bool is_empty() const
         { return _size()==0; }
                 
-        dword size() const
+        size_type size() const
         { return _size(); }
-        dword count() const
+        size_type count() const
         { return _size(); }
-        dword capacity() const
+        size_type capacity() const
         { return _allocationSize(); }
     protected:
         using rallocatorEx<T>::_allocationSize;

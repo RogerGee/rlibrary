@@ -17,9 +17,13 @@ using namespace rtypes;
         set<directory_not_empty_error>();
     else if (err == ERROR_INVALID_HANDLE)
         set<invalid_resource_error>();
+    else if (err==ERROR_OUTOFMEMORY || err==ERROR_NOT_ENOUGH_MEMORY)
+        set<out_of_memory_error>();
+    else if (err == ERROR_BAD_ENVIRONMENT)
+        set<error_bad_environment>();
     // set undocumented error
     else
-        set<rlib_error>(err);
+        _sysSet(err);
 }
 /* static */ void rlib_last_error::switch_throw()
 {
@@ -36,8 +40,13 @@ using namespace rtypes;
         throw directory_not_empty_error();
     case ERROR_INVALID_HANDLE:
         throw invalid_resource_error();
+    case ERROR_OUTOFMEMORY:
+    case ERROR_NOT_ENOUGH_MEMORY:
+        throw out_of_memory_error();
+    case ERROR_BAD_ENVIRONMENT:
+        throw bad_environment_error();
     }
     // throw undocumented error
-    throw rlib_error(err);
+    throw rlib_system_error(err);
 }
 

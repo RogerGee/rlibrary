@@ -4,14 +4,14 @@
  */
 #ifndef RSTDIO_H
 #define RSTDIO_H
-#include "riodevice.h" // gets rstream.h
-#include "rstreammanip.h" // need these stream manipulators for standard_stream
+#include "riodevice.h" // gets rstream
 
 namespace rtypes
 {
     /* standard_device
-     *  represents objects that wrap standard input/output
-     * operations on the process's standard IO channels
+     *  represents an object that wraps standard input/output
+     * operations on the process's standard IO channels; this
+     * class is intended to provide lower-level support
      */
     class standard_device : public io_device
     {
@@ -51,31 +51,58 @@ namespace rtypes
     private:
         stack<io_resource*> _redirError;
 
-        virtual void _openEvent(const char*,io_access_flag,dword**,dword);
+        virtual void _openEvent(const char*,io_access_flag,void**,dword);
         virtual void _readAll(generic_string&) const;
         virtual void _closeEvent(io_access_flag);
+    };
+
+    /* standard_stream_output_kind
+     *  represents the output channel used by a standard_stream
+     */
+    enum standard_stream_output_kind
+    {
+        out,
+        err
+    };
+
+    /* standard_stream_device
+     *  represents the device implementation for a standard
+     * stream
+     */
+    class standard_stream_device : public stream_device<standard_device>
+    {
+    public:
+        standard_stream_output_kind get_output_mode() const
+        { return _okind; }
+        void set_output_mode(standard_stream_output_kind kind)
+        { _okind = kind; }
+    protected:
+        standard_stream_device();
+
+        standard_stream_output_kind _okind;
+    private:
+        // stream device interface
+        virtual void _clearDevice();
+        virtual bool _openDevice(const char* deviceID);
+        virtual void _closeDevice();
     };
 
     /* standard_stream
      *  represents a text stream interface to a standard device;
      * a standard_stream (by default) buffers its output until it
      * is flushed, closed, destroyed, or encounters the 'endline'
-     * stream manipulator
+     * stream manipulator; this class is intended to provide higher-
+     * level support
      */
     class standard_stream : public rstream,
-                            public stream_device<standard_device>
+                            public standard_stream_device
     {
     public:
         standard_stream();
         standard_stream(standard_device&);
         ~standard_stream();
     private:
-        // stream device interface
-        virtual void _clearDevice();
-        virtual bool _openDevice(const char* deviceID);
-        virtual void _closeDevice();
-
-        // rstream interface
+        // stream_buffer interface
         virtual bool _inDevice() const; // [sys]
         virtual void _outDevice(); // [sys]
     };
@@ -83,26 +110,26 @@ namespace rtypes
     /* standard_binary_stream
      *  represents a binary stream interface to a standard device;
      * a standard_binary_stream (by default) buffers its output until it
-     * is flushed, closes, destroyed, or encounters the 'endline'
-     * stream manipulator
+     * is flushed, closed, destroyed, or encounters the 'endline'
+     * stream manipulator; this class is intended to provide in general
+     * higher-level support
      */
     class standard_binary_stream : public rbinstream,
-                                   public stream_device<standard_device>
+                                   public standard_stream_device
     {
     public:
         standard_binary_stream();
         standard_binary_stream(standard_device&);
         ~standard_binary_stream();
     private:
-        // stream device interface
-        virtual void _clearDevice();
-        virtual bool _openDevice(const char* deviceID);
-        virtual void _closeDevice();
-
-        // rstream interface
+        // stream_buffer interface
         virtual bool _inDevice() const; // [sys]
         virtual void _outDevice(); // [sys]
     };
+
+    // output operator overloads
+    rstream& operator <<(standard_stream&,standard_stream_output_kind);
+    rbinstream& operator <<(standard_binary_stream&,standard_stream_output_kind);
 
     // standard stream object
     extern standard_stream stdConsole;

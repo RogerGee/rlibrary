@@ -7,11 +7,11 @@
 using namespace rtypes;
 
 // rtypes::io_resource
-io_resource::io_resource()
+io_resource::io_resource(bool closable)
     : _MyBase(INVALID_HANDLE_VALUE)
 {
-    _reference = 0;
-    _closable = true;
+    _reference = 1; // set default reference to 1 use
+    _closable = closable;
 }
 io_resource::~io_resource()
 {

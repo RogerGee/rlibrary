@@ -11,13 +11,13 @@ namespace rtypes
     {
     public:
         dynamic_array();
-        explicit dynamic_array(dword iniSize);
-        dynamic_array(dword iniSize,const T& defaultValue);
+        explicit dynamic_array(size_type iniSize);
+        dynamic_array(size_type iniSize,const T& defaultValue);
 
-        T& operator [](dword index);
-        const T& operator [](dword index) const;
-        T& at(dword index);
-        const T& at(dword index) const;
+        T& operator [](size_type index);
+        const T& operator [](size_type index) const;
+        T& at(size_type index);
+        const T& at(size_type index) const;
 
         T& front();
         const T& front() const;
@@ -30,15 +30,15 @@ namespace rtypes
         T& operator ++();
         T& operator ++(int);
 
-        void resize(dword allocSize,bool exact = false);
+        void resize(size_type allocSize,bool exact = false);
         void clear();
         void reset();
 
         bool is_empty() const
         { return _size()==0; }
-        dword size() const
+        size_type size() const
         { return _size(); }
-        dword capacity() const
+        size_type capacity() const
         { return _allocationSize(); }
     protected:
         using rallocatorEx<T>::_exactAlloc;

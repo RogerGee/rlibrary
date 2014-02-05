@@ -9,7 +9,8 @@ using namespace rtypes;
 // rtypes::standard_device
 bool standard_device::open_error(const char*)
 {
-    _error = new io_resource( reinterpret_cast<void*>(STDERR_FILENO),false );
+    _error = new io_resource(false);
+    _error->assign(STDERR_FILENO);
     return true;
 }
 bool standard_device::clear_screen()
@@ -52,14 +53,23 @@ void standard_device::_writeErrBuffer(const void* buffer,size_type length)
         _byteCount = 0;
     }
 }
-void standard_device::_openEvent(const char*,io_access_flag kind,dword**,dword)
+void standard_device::_openEvent(const char*,io_access_flag kind,void**,dword)
 {
     if (kind & read_access)
-        _input = new io_resource( reinterpret_cast<void*>(STDIN_FILENO),false );
+    {
+        _input = new io_resource(false);
+        _input->assign(STDIN_FILENO);
+    }
     if (kind & write_access)
-        _output = new io_resource( reinterpret_cast<void*>(STDOUT_FILENO),false );
+    {
+        _output = new io_resource(false);
+        _output->assign(STDOUT_FILENO);
+    }
     if (kind == all_access)
-        _error = new io_resource( reinterpret_cast<void*>(STDERR_FILENO),false );
+    {
+        _error = new io_resource(false);
+        _error->assign(STDERR_FILENO);
+    }
 }
 
 // rtypes::standard_stream
@@ -76,7 +86,10 @@ bool standard_stream::_inDevice() const
 }
 void standard_stream::_outDevice()
 {
-    _device->write(&_bufOut.peek(),_bufOut.size());
+    if (_okind == out)
+        _device->write(&_bufOut.peek(),_bufOut.size());
+    else
+        _device->write_error(&_bufOut.peek(),_bufOut.size());
     _bufOut.clear();
 }
 
@@ -94,6 +107,9 @@ bool standard_binary_stream::_inDevice() const
 }
 void standard_binary_stream::_outDevice()
 {
-    _device->write(&_bufOut.peek(),_bufOut.size());
+    if (_okind == out)
+        _device->write(&_bufOut.peek(),_bufOut.size());
+    else
+        _device->write_error(&_bufOut.peek(),_bufOut.size());
     _bufOut.clear();
 }

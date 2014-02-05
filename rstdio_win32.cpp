@@ -61,23 +61,23 @@ void standard_device::_writeErrBuffer(const void* buffer,size_type length)
         _byteCount = 0;
     }
 }
-void standard_device::_openEvent(const char*,io_access_flag kind,dword**,dword)
+void standard_device::_openEvent(const char*,io_access_flag kind,void**,dword)
 {
     HANDLE hStdHandle;
     if (kind & read_access)
     {
-        hStdHandle = ::GetStdHandle(STD_INPUT_HANDLE);
-        _input = new io_resource( reinterpret_cast<void*>(hStdHandle),false );
+        _input = new io_resource(false);
+        _input->assign( ::GetStdHandle(STD_INPUT_HANDLE) );
     }
     if (kind & write_access)
     {
-        hStdHandle = ::GetStdHandle(STD_OUTPUT_HANDLE);
-        _output = new io_resource( reinterpret_cast<void*>(hStdHandle),false );
+        _output = new io_resource(false);
+        _output->assign( ::GetStdHandle(STD_OUTPUT_HANDLE) );
     }
     if (kind == all_access)
     {
-        hStdHandle = ::GetStdHandle(STD_ERROR_HANDLE);
-        _error = new io_resource( reinterpret_cast<void*>(hStdHandle),false );
+        _error = new io_resource(false);
+        _error->assign( ::GetStdHandle(STD_ERROR_HANDLE) );
     }
 }
 
@@ -120,15 +120,20 @@ void standard_stream::_outDevice()
      */
     dword iter = 0;
     const char* pbuffer = &_bufOut.peek();
+    void (standard_stream::* pwrite)(const char*,size_type);
+    if (_okind == out)
+        pwrite = &standard_stream::write;
+    else
+        pwrite = &standard_stream::write_error;
     while (true)
     {
         dword length = 0;
         while (iter<_bufOut.size() && pbuffer[length] != '\n')
             ++length, ++iter;
-        _device->write(pbuffer,length);
+        (_device->*pwrite)(pbuffer,length);
         if (iter >= _bufOut.size())
             break;
-        _device->write("\r\n",2);
+        (_device->pwrite)("\r\n",2);
         pbuffer += length+1;
         ++iter;
     }
@@ -151,6 +156,9 @@ bool standard_binary_stream::_inDevice() const
 void standard_binary_stream::_outDevice()
 {
     /* don't do anything fancy with the bytes... */
-    _device->write(&_bufOut.peek(),_bufOut.size());
+    if (_okind == out)
+        _device->write(&_bufOut.peek(),_bufOut.size());
+    else
+        _device->write_error(&_bufOut.peek(),_bufOut.size());
     _bufOut.clear();
 }

@@ -42,7 +42,6 @@ using namespace rtypes;
     case EACCES:
         throw access_denied_error();
     case ENOMEM:
-    case ENFILE:
         throw out_of_memory_error();
     case ENOENT:
         throw does_not_exist_error();

@@ -15,7 +15,7 @@ namespace rtypes
                 return *this;
             _alloc(obj._allocSize);
             // copy as is
-            for (dword i = 0;i<obj._allocSize;i++)
+            for (size_type i = 0;i<obj._allocSize;i++)
                 _data[i] = obj._data[i];
             return *this;
         }
@@ -25,7 +25,7 @@ namespace rtypes
             _allocSize = 0;
             _alloc();
         }
-        explicit rallocator(dword AllocSize)
+        explicit rallocator(size_type AllocSize)
         {
             _data = 0;
             _alloc(AllocSize);
@@ -36,7 +36,7 @@ namespace rtypes
             _allocSize = 0;
             _alloc(obj._allocSize);
             // copy as is
-            for (dword i = 0;i<obj._allocSize;i++)
+            for (size_type i = 0;i<obj._allocSize;i++)
                 _data[i] = obj._data[i];
         }
         ~rallocator()
@@ -44,10 +44,10 @@ namespace rtypes
             _dealloc();
         }
         T* _getData() const { return _data; }
-        dword _allocationSize() const { return _allocSize; }
+        size_type _allocationSize() const { return _allocSize; }
         T* _alloc() // return ptr to new data
         {
-            dword newSize = (_allocSize==0 ? 4 : _allocSize*2);
+            size_type newSize = (_allocSize==0 ? 4 : _allocSize*2);
             T* newData = new T[newSize];
             _copy(newData,_data);
             _dealloc();
@@ -55,7 +55,7 @@ namespace rtypes
             _allocSize = newSize;
             return newData;
         }
-        T* _alloc(dword desiredSize) // return ptr to new data
+        T* _alloc(size_type desiredSize) // return ptr to new data
         {
             T* newData = new T[desiredSize];
             _copy(newData,_data);
@@ -66,7 +66,7 @@ namespace rtypes
         }
         virtual void _copy(T* copyTo,const T* copyFrom)
         {// default copying
-            for (dword i = 0;i<_allocSize;i++)
+            for (size_type i = 0;i<_allocSize;i++)
                 copyTo[i] = copyFrom[i];
         }
         void _dealloc()
@@ -77,7 +77,7 @@ namespace rtypes
         }
     private:
         T* _data;
-        dword _allocSize;
+        size_type _allocSize;
     };
 
     template<class T>
@@ -93,7 +93,7 @@ namespace rtypes
             _extr = obj._extr;
             _data = new T[_allocationSize()];
             // copy as is
-            for (dword i = 0;i<_sz;i++)
+            for (size_type i = 0;i<_sz;i++)
                 _data[i] = obj._data[i];
             return *this;
         }
@@ -106,7 +106,7 @@ namespace rtypes
             _virtAlloc(1); // _sz 1, _extr 3
             _virtAlloc(0); // _sz 0, _extr 4
         }
-        explicit rallocatorEx(dword AllocSize)
+        explicit rallocatorEx(size_type AllocSize)
         {
             _data = 0;
             _sz = 0;
@@ -119,7 +119,7 @@ namespace rtypes
             _extr = obj._extr;
             _data = new T[_allocationSize()];
             // copy as is
-            for (dword i = 0;i<_sz;i++)
+            for (size_type i = 0;i<_sz;i++)
                 _data[i] = obj._data[i];
         }
         ~rallocatorEx()
@@ -127,10 +127,10 @@ namespace rtypes
             _dealloc();
         }
         T* _getData() const { return _data; }
-        dword _size() const { return _sz; }
-        dword _extra() const { return _extr; }
-        dword _allocationSize() const { return _sz+_extr; }
-        void _exactAlloc(dword desiredSize)
+        size_type _size() const { return _sz; }
+        size_type _extra() const { return _extr; }
+        size_type _allocationSize() const { return _sz+_extr; }
+        void _exactAlloc(size_type desiredSize)
         {
             if (desiredSize>0)
             {
@@ -144,7 +144,7 @@ namespace rtypes
             else
                 _dealloc();
         }
-        bool _virtAlloc(dword desiredSize) // returns a boolean indicating if the (de)allocation was virtual; all deallocations are virtual
+        bool _virtAlloc(size_type desiredSize) // returns a boolean indicating if the (de)allocation was virtual; all deallocations are virtual
         {
             if (desiredSize>_sz)
             {
@@ -152,7 +152,7 @@ namespace rtypes
                 if (_allocationSize()>=desiredSize)
                 {
                     // virtual allocation
-                    dword dif = desiredSize-_sz;
+                    size_type dif = desiredSize-_sz;
                     _extr -= dif;
                     _sz += dif;
                     return true;
@@ -160,8 +160,8 @@ namespace rtypes
                 else
                 {
                     // reallocate to twice old allocation
-                    dword allocSize = _allocationSize();
-                    dword newSize = (allocSize==0 ? 4 : allocSize*2);
+                    size_type allocSize = _allocationSize();
+                    size_type newSize = (allocSize==0 ? 4 : allocSize*2);
                     T* newData = new T[newSize];
                     _copy(newData,_data); // perform default or custom copy action
                     delete[] _data;
@@ -174,7 +174,7 @@ namespace rtypes
             else if (desiredSize<_sz)
             {
                 // virtual deallocation
-                dword dif = _sz-desiredSize;
+                size_type dif = _sz-desiredSize;
                 _extr += dif;
                 _sz -= dif;
                 //return true below
@@ -184,7 +184,7 @@ namespace rtypes
         }
         virtual void _copy(T* copyTo,const T* copyFrom)
         {// default copying
-            for (dword i = 0;i<_sz;i++)
+            for (size_type i = 0;i<_sz;i++)
                 copyTo[i] = copyFrom[i];
         }
         void _dealloc()
@@ -196,7 +196,7 @@ namespace rtypes
         }
     private:
         T* _data;
-        dword _sz, _extr;
+        size_type _sz, _extr;
     };
 }
 

@@ -25,15 +25,15 @@ namespace rtypes
             }
             _getData()[_tail++] = elem;
         }
-        void push_range(const T* elems,dword sz)
+        void push_range(const T* elems,size_type sz)
         {
             if (sz > 0)
             {
-                dword neededPosition = _tail+sz-1;
+                size_type neededPosition = _tail+sz-1;
                 while (neededPosition>=_allocationSize())
                     _alloc();
                 T* buffer = _getData();
-                for (dword i = 0;i<sz;i++)
+                for (size_type i = 0;i<sz;i++)
                     buffer[_tail++] = elems[i];
             }
         }
@@ -48,7 +48,7 @@ namespace rtypes
             }
             return _getData()[_head++];
         }
-        void pop_range(dword cnt)
+        void pop_range(size_type cnt)
         {// a "virtual" pop operation for "seeking" through the data
             _head += cnt;
             if (_head>=_tail)
@@ -80,11 +80,11 @@ namespace rtypes
         bool is_empty() const
         { return _head==_tail; }
                 
-        dword size() const
+        size_type size() const
         { return _tail-_head; }
-        dword count() const
+        size_type count() const
         { return _tail-_head; }
-        dword capacity() const
+        size_type capacity() const
         { return _allocationSize(); }
     protected:
         using rallocator<T>::_allocationSize;
@@ -93,14 +93,14 @@ namespace rtypes
         using rallocator<T>::_alloc;
         virtual void _copy(T* copyTo,const T* copyFrom)
         {
-            dword i = 0;
-            for (dword h = _head;h<_tail;h++,i++)
+            size_type i = 0;
+            for (size_type h = _head;h<_tail;h++,i++)
                 copyTo[i] = copyFrom[h];
             _head = 0;
             _tail = i;
         }
     private:
-        dword _head, _tail;
+        size_type _head, _tail;
     };
 
     template<class T>
@@ -165,15 +165,15 @@ namespace rtypes
             _alloc();
         }
                 
-        dword size() const
+        size_type size() const
         {
             if (_tail<_head)
                 return _allocationSize()-_head + _tail;
             return _tail-_head;
         }
-        dword count() const
+        size_type count() const
         { return size(); }
-        dword capacity() const // number of possible elements that could fit in queue
+        size_type capacity() const // number of possible elements that could fit in queue
         {
             if (_head>1) // can wrap
                 //              wrapped + linear = alloc size -1
@@ -187,7 +187,7 @@ namespace rtypes
         using rallocator<T>::_alloc;
         virtual void _copy(T* copyTo,const T* copyFrom)
         {// callback for whenever a reallocation has occurred
-            dword i = 0;
+            size_type i = 0;
             if (_tail>_head)
             {// copy from head to tail
                 for (;_head<_tail;_head++,i++)
@@ -197,7 +197,7 @@ namespace rtypes
             {// copy from head to allocation size-1 and from 0 to _tail-1
                 for (;_head<_allocationSize();_head++,i++)
                     copyTo[i] = copyFrom[_head];
-                for (dword t = 0;t<_tail;t++,i++)
+                for (size_type t = 0;t<_tail;t++,i++)
                     copyTo[i] = copyFrom[t];
             }
             // else is empty
@@ -205,7 +205,7 @@ namespace rtypes
             _tail = i;
         }
     private:
-        dword _head, _tail;
+        size_type _head, _tail;
     };
 
     template<class T,class P>
@@ -228,7 +228,7 @@ namespace rtypes
             // allocator's copy c-str will only copy the pointer values
             _pq_data_ptr* thisData = _getData(); // allocated from base cpy-constructor call
             _pq_data_ptr* thatData = pq._getData();
-            for (dword i = 0;i<_size();i++)
+            for (size_type i = 0;i<_size();i++)
             {// create new pq elements and overwrite ptr values
                 thisData[i] = new priority_queue_elem<T,P>;
                 *(thisData[i]) = *(thatData[i]);
@@ -237,7 +237,7 @@ namespace rtypes
         ~priority_queue()
         {
             _pq_data_ptr* data = _getData();
-            for (dword i = 0;i<_size();i++)
+            for (size_type i = 0;i<_size();i++)
                 delete data[i];
         }
         priority_queue& operator =(const priority_queue& pq)
@@ -249,13 +249,13 @@ namespace rtypes
             _virtAlloc(pq._size());
             _pq_data_ptr* thisData = _getData();
             _pq_data_ptr* thatData = pq._getData();
-            for (dword i = 0;i<_size();i++)
+            for (size_type i = 0;i<_size();i++)
                 *(thisData[i]) = *(thatData[i]);
             return *this;
         }
         void push(const T& elem,const P& priority)
         {
-            dword i = _searchPriority(priority);
+            size_type i = _searchPriority(priority);
             if (i<_size())
             {// use existing queue with priority
                 _pq_data_ptr* data = _getData();
@@ -277,7 +277,7 @@ namespace rtypes
         {
             // the elements are sorted, so the queue at the top bound has priority
             _pq_data_ptr* data = _getData();
-            dword i = _size()-1;
+            size_type i = _size()-1;
             while (i<_size() && data[i]->data.is_empty())
                 i--;
             if (i>=_size())
@@ -289,7 +289,7 @@ namespace rtypes
         void clear() // maintains the current capacity (the number of priorities available to the pqueue)
         {
             _pq_data_ptr* data = _getData();
-            for (dword i = 0;i<_size();i++)
+            for (size_type i = 0;i<_size();i++)
                 data[i]->data.clear();
         }
         void reset() // decreases capacity
@@ -298,30 +298,30 @@ namespace rtypes
         bool is_empty() const
         { return size()==0; }
                 
-        dword size() const
+        size_type size() const
         {
             _pq_data_ptr* data = _getData();
-            dword sz = 0;
-            for (dword i = 0;i<_size();i++)
+            size_type sz = 0;
+            for (size_type i = 0;i<_size();i++)
                 sz += data[i]->data.size();
             return sz;
         }
-        dword count() const
+        size_type count() const
         { return size(); }
-        dword priority_count() const
+        size_type priority_count() const
         {
             _pq_data_ptr* data = _getData();
-            dword c = 0;
-            for (dword i = 0;i<_size();i++)
+            size_type c = 0;
+            for (size_type i = 0;i<_size();i++)
                 if (data[i]->data.size() > 0)
                     ++c;
             return c;
         }
-        dword capacity() const
+        size_type capacity() const
         {
-            dword sum = 0;
+            size_type sum = 0;
             _pq_data_ptr* data = _getData();
-            for (dword i = 0;i<_size();i++)
+            for (size_type i = 0;i<_size();i++)
                 sum += data[i]->data.capacity();
             return sum;
         }
@@ -338,11 +338,11 @@ namespace rtypes
         void _sortElems()
         {
             _pq_data_ptr* data = _getData();
-            for (dword i = 1;i<_size();i++)
+            for (size_type i = 1;i<_size();i++)
             {
                 _pq_data_ptr pElem = data[i];
                 P compVal = data[i]->priority;
-                dword ind = i;
+                size_type ind = i;
                 while (ind>0 && compVal<data[ind-1]->priority)
                 {
                     data[ind] = data[ind-1];
@@ -352,15 +352,15 @@ namespace rtypes
                     data[ind] = pElem;
             }
         }
-        dword _searchPriority(const P& p)
+        size_type _searchPriority(const P& p)
         {
             _pq_data_ptr* data = _getData();
-            int start = 0, end = _size()-1;
+            ssize_type start = 0, end = _size()-1;
             while (start<=end)
             {
-                int average = (start+end)/2;
+                ssize_type average = (start+end)/2;
                 if (data[average]->priority==p)
-                    return (dword) average;
+                    return (size_type) average;
                 if (data[average]->priority<p)
                     start = average+1;
                 else

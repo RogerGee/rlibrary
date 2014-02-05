@@ -1,5 +1,5 @@
 /* riodevice.cpp
- *  Compile target platform flags:
+ *  Compile target framework flags:
  *   RLIBRARY_BUILD_POSIX - build targeting POSIX
  *   RLIBRARY_BUILD_WIN32 - build targeting Windows API
  */
@@ -26,15 +26,6 @@ using namespace rtypes;
 #endif
 
 // define target-independent code
-
-// rtypes::io_resource
-io_resource::io_resource(void* defaultValue,bool performClose)
-    : _MyBase(defaultValue)
-{
-    // count the initial reference
-    _reference = 1;
-    _closable = performClose;
-}
 
 // rtypes::io_device
 io_device::io_device()
@@ -300,6 +291,22 @@ io_device& io_device::_assign(const io_device& device)
         _byteCount = 0;
     }
     return *this;
+}
+const io_resource* io_device::_getValidContext() const
+{
+    if (_input != NULL)
+        return _input;
+    if (_output != NULL)
+        return _output;
+    return NULL;
+}
+io_resource* io_device::_getValidContext()
+{
+    if (_input != NULL)
+        return _input;
+    if (_output != NULL)
+        return _output;
+    return NULL;
 }
 /* static */ int& io_device::_ResourceRef(io_resource* pres)
 {
