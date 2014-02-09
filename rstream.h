@@ -186,8 +186,10 @@ namespace rtypes
 
         // delimit operations
         void add_extra_delimiter(char);
+        void add_extra_delimiter(const char*);
         void add_extra_delimiter(const generic_string& delimiterString);
         void remove_extra_delimiter(char c);
+        void remove_extra_delimiter(const char*);
         void remove_extra_delimiter(const generic_string& delimiterString);
         void clear_extra_delimiters();
         bool delimit_whitespace(bool yes);

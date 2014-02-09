@@ -170,15 +170,27 @@ void rstream::add_extra_delimiter(char c)
     // add a new delimiter to the basic whitespace set
     _delimits.insert(c);
 }
+void rstream::add_extra_delimiter(const char* pdelims)
+{
+    size_type i = 0;
+    while (pdelims[i])
+        _delimits.insert( pdelims[i++] );
+}
 void rstream::add_extra_delimiter(const generic_string& delimiterString)
 {
     // add multiple delimiters with one call
-    for (dword i = 0;i<delimiterString.length();i++)
+    for (size_type i = 0;i<delimiterString.length();i++)
         _delimits.insert( delimiterString[i] );
 }
 void rstream::remove_extra_delimiter(char c)
 {
     _delimits.remove(c);
+}
+void rstream::remove_extra_delimiter(const char* pdelims)
+{
+    size_type i = 0;
+    while (pdelims[i])
+        _delimits.remove( pdelims[i++] );
 }
 void rstream::remove_extra_delimiter(const generic_string& delimiterString)
 {
