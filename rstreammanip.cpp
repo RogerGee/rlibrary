@@ -12,6 +12,7 @@ void _rstream_flush_manipulator::operation(rbinstream& stream) const
     if ( stream.does_buffer_output() )
         stream.flush_output();
 }
+const _rstream_flush_manipulator rtypes::flush;
 
 // rtypes::_rstream_endflush_manipulator
 void _rstream_endflush_manipulator::operation(rstream& stream) const

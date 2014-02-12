@@ -15,10 +15,12 @@ namespace rtypes
     size_type rutil_strlen(const char*); // returns length of c-style strings
     char* rutil_strcpy(char* buffer,const char* source); // copies source into buffer; returns buffer
     char* rutil_strncpy(char* buffer,const char* source,size_type n); // copies n-characters from source into buffer; copies extra null terminators; returns  buffer
-    str rutil_to_lower(const str&); // return lower-case string variant
-    void rutil_to_lower_ref(str&); // change string to lower-case variant
-    str rutil_to_upper(const str&); // return upper-case string variant
-    void rutil_to_upper_ref(str&); // change string to upper-case variant
+    str rutil_to_lower(const char*); // return lower-case string variant
+    str rutil_to_lower(const generic_string&);
+    void rutil_to_lower_ref(generic_string&); // change string to lower-case variant
+    str rutil_to_upper(const char*); // return upper-case string variant
+    str rutil_to_upper(const generic_string&);
+    void rutil_to_upper_ref(generic_string&); // change string to upper-case variant
 }
 
 #endif

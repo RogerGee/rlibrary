@@ -137,7 +137,7 @@ bool path::make(bool createSubDirectories) const
         if ( !parent.exists() )
             parent.make(true);
     }
-    if ( ::mkdir( get_full_name().c_str(),0777 ) != 0 )
+    if ( ::mkdir( get_full_name().c_str(),0775 ) != 0 )
     {
         // set specific errors
         if (errno == ENOENT)

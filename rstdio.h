@@ -78,6 +78,7 @@ namespace rtypes
         { _okind = kind; }
     protected:
         standard_stream_device();
+        standard_stream_device(standard_device&);
 
         standard_stream_output_kind _okind;
     private:
@@ -132,7 +133,17 @@ namespace rtypes
     rbinstream& operator <<(standard_binary_stream&,standard_stream_output_kind);
 
     // standard stream object
-    extern standard_stream stdConsole;
+    extern standard_stream& stdConsole;
+    extern standard_stream& errConsole;
+
+    static class __standard_console_init__
+    {
+    public:
+        __standard_console_init__();
+        ~__standard_console_init__();
+    private:
+        static int _reference;
+    } __standard_console_initializer__;
 }
 
 #endif

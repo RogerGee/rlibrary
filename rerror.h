@@ -142,6 +142,11 @@ namespace rtypes
         virtual const char* message() const
         { return "The operation failed because the environment was incorrect."; }
     };
+    struct object_not_initialized_error : rlib_error
+    {
+        virtual const char* message() const
+        { return "The operation cannot be performed on the object in its current state."; }
+    };
 }
 
 #endif

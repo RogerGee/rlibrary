@@ -75,14 +75,14 @@ void standard_device::_openEvent(const char*,io_access_flag kind,void**,dword)
 // rtypes::standard_stream
 bool standard_stream::_inDevice() const
 {
-    dword cnt;
     char buffer[4096];
-    // read in a buffer
     _device->read(buffer,4096);
-    cnt = _device->get_last_byte_count();
-    _bufIn.push_range(buffer,cnt);
-    // return success if at least some bytes were read
-    return cnt > 0;
+    if (_device->get_last_operation_status() == success_read)
+    {
+        _bufIn.push_range(buffer,_device->get_last_byte_count());
+        return true;
+    }
+    return false;
 }
 void standard_stream::_outDevice()
 {
@@ -96,14 +96,14 @@ void standard_stream::_outDevice()
 // rtypes::standard_binary_stream
 bool standard_binary_stream::_inDevice() const
 {
-    dword cnt;
     char buffer[4096];
-    // read in a buffer
     _device->read(buffer,4096);
-    cnt = _device->get_last_byte_count();
-    _bufIn.push_range(buffer,cnt);
-    // return success if at least some bytes were read
-    return cnt > 0;
+    if (_device->get_last_operation_status() == success_read)
+    {
+        _bufIn.push_range(buffer,_device->get_last_byte_count());
+        return true;
+    }
+    return false;
 }
 void standard_binary_stream::_outDevice()
 {

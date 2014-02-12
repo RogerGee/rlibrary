@@ -12,9 +12,9 @@ rstringstream::rstringstream(const char* initialValue)
     open(initialValue);
 }
 rstringstream::rstringstream(generic_string& strDevice)
+    : stream_device<str,generic_string>(strDevice)
 {
-    // construct with non-owned device
-    open(strDevice);
+
 }
 rstringstream::~rstringstream()
 {
@@ -68,9 +68,9 @@ const_rstringstream::const_rstringstream(const char* initialValue)
     open(initialValue);
 }
 const_rstringstream::const_rstringstream(const generic_string& strDevice)
+    : const_stream_device<str,generic_string>(strDevice)
 {
-    // construct with non-owned device
-    open(strDevice);
+
 }
 bool const_rstringstream::_openDevice(generic_string* device,const char* deviceID)
 {
@@ -103,9 +103,9 @@ rbinstringstream::rbinstringstream(const char* initialValue)
     open(initialValue);
 }
 rbinstringstream::rbinstringstream(generic_string& strDevice)
+    : stream_device<str,generic_string>(strDevice)
 {
-    // construct with non-owned device
-    open(strDevice);
+
 }
 rbinstringstream::rbinstringstream(endianness endianFlag)
     : rbinstream(endianFlag)
@@ -163,9 +163,9 @@ const_rbinstringstream::const_rbinstringstream(const char* initialValue)
     open(initialValue);
 }
 const_rbinstringstream::const_rbinstringstream(const generic_string& strDevice)
+    : const_stream_device<str,generic_string>(strDevice)
 {
-    // construct with non-owned device
-    open(strDevice);
+
 }
 const_rbinstringstream::const_rbinstringstream(endianness endianFlag)
     : rbinstream(endianFlag)

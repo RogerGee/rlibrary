@@ -19,9 +19,6 @@ using namespace rtypes;
 
 // define target-independent code
 
-// define objects global to rtypes
-standard_stream rtypes::stdConsole;
-
 // rtypes::standard_device
 standard_device::standard_device()
     : _error(NULL)
@@ -219,6 +216,10 @@ standard_stream_device::standard_stream_device()
     : _okind(out) // use standard output by default
 {
 }
+standard_stream_device::standard_stream_device(standard_device& device)
+    : stream_device<standard_device>(device), _okind(out)
+{
+}
 void standard_stream_device::_clearDevice()
 {
     _device->clear_screen();
@@ -238,9 +239,9 @@ standard_stream::standard_stream()
     _doesBuffer = true; // standard text streams buffer by default
 }
 standard_stream::standard_stream(standard_device& device)
+    : standard_stream_device(device)
 {
     _doesBuffer = true; // standard text streams buffer by default
-    open(device);
 }
 standard_stream::~standard_stream()
 {
@@ -256,9 +257,9 @@ standard_binary_stream::standard_binary_stream()
     _doesBuffer = true; // standard text streams buffer by default
 }
 standard_binary_stream::standard_binary_stream(standard_device& device)
+    : standard_stream_device(device)
 {
     _doesBuffer = true; // standard text streams buffer by default
-    open(device);
 }
 standard_binary_stream::~standard_binary_stream()
 {
@@ -267,6 +268,8 @@ standard_binary_stream::~standard_binary_stream()
     if ( !_bufOut.is_empty() )
         flush_output();
 }
+
+// rstream overloads for standard_stream
 
 rstream& rtypes::operator <<(standard_stream& stream,standard_stream_output_kind kind)
 {
@@ -277,4 +280,36 @@ rbinstream& rtypes::operator <<(standard_binary_stream& stream,standard_stream_o
 {
     stream.set_output_mode(kind);
     return stream;
+}
+
+// define and setup global stream objects
+
+static byte _stdDevice[sizeof(standard_device)];
+static byte _stdConsole[sizeof(standard_stream)];
+static byte _errConsole[sizeof(standard_stream)];
+static standard_device& stdDevice = reinterpret_cast<standard_device&>(_stdDevice);
+standard_stream& rtypes::stdConsole = reinterpret_cast<standard_stream&>(_stdConsole);
+standard_stream& rtypes::errConsole = reinterpret_cast<standard_stream&>(_errConsole);
+
+/*static*/ int __standard_console_init__::_reference = 0;
+__standard_console_init__::__standard_console_init__()
+{
+    if (_reference++ == 0)
+    {
+        // explicitly invoke constructors
+        new (_stdDevice) standard_device();
+        new (_stdConsole) standard_stream(stdDevice);
+        new (_errConsole) standard_stream(stdDevice);
+        errConsole.set_output_mode(err);
+    }
+}
+__standard_console_init__::~__standard_console_init__()
+{
+    if (--_reference == 0)
+    {
+        // explicitly invoke destructors
+        stdConsole.~standard_stream();
+        errConsole.~standard_stream();
+        stdDevice.~standard_device();
+    }
 }

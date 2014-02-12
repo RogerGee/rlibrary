@@ -18,6 +18,7 @@ OBJ_OUT = -o $(OBJDIR)/
 #  (stand-alone header files)
 RTYPESTYPES_H = rtypestypes.h
 RNODE_H = rnode.h
+RFILEMODE_H = rfilemode.h
 #  (header files with dependencies)
 RALLOCATOR_H = rallocator.h $(RTYPESTYPES_H)
 RSTRING_H = rstring.h rstring.tcc $(RTYPESTYPES_H)
@@ -33,7 +34,8 @@ RSTREAMMANIP_H = rstreammanip.h $(RSTREAM_H)
 RSTRINGSTREAM_H = rstringstream.h $(RSTREAM_H)
 RUTILITY_H = rutility.h $(RTYPESTYPES_H)
 RINTEGRATION_H = rintegration.h $(RSTRING_H)
-RFILENAME_H = rfilename.h $(RSTRING_H) $(RDYNARRAY_H)
+RFILENAME_H = rfilename.h $(RSTRING_H) $(RDYNARRAY_H) $(RFILEMODE_H)
 RRESOURCE_H = rresource.h rresource.tcc $(RTYPESTYPES_H) $(RERROR_H)
 RIODEVICE_H = riodevice.h $(RRESOURCE_H) $(RSTRING_H) $(RSTACK_H)
 RSTDIO_H = rstdio.h $(RIODEVICE_H)
+RFILE_H = rfile.h $(RIODEVICE_H) $(RFILEMODE_H)

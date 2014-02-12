@@ -376,6 +376,11 @@ namespace rtypes
             _device = new T;
             _owned = true;
         }
+        stream_device(BaseT& device)
+        {
+            _device = &device;
+            _owned = false;
+        }
         stream_device(const stream_device& obj)
         {
             if (obj._owned)
@@ -545,6 +550,11 @@ namespace rtypes
         {
             _device = new T;
             _owned = true;
+        }
+        const_stream_device(const BaseT& device)
+        {
+            _device = &device;
+            _owned = false;
         }
         const_stream_device(const const_stream_device& obj)
         {

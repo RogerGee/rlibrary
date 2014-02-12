@@ -1,7 +1,7 @@
 ################################################################################
 # Makefile that builds 'rlibrary' with Ubuntu/Linux targets                    #
 ################################################################################
-.PHONY: install clean test
+.PHONY: install uninstall clean test
 
 # include build variables
 include rlibrary-build-vars.mk
@@ -14,10 +14,11 @@ INTEGRATION_OBJ_files = $(addprefix $(OBJDIR)/,rintrg_ostream_str.o rintrg_istre
 # (rlibrary/impl)
 IMPL_OBJ_files = $(addprefix $(OBJDIR)/,terminfo.o)
 # (rlibrary)
-OBJ_files = $(addprefix $(OBJDIR)/,rstream.o rstreammanip.o rstringstream.o rlasterr.o rfilename.o riodevice.o rstdio.o) $(UTILITY_OBJ_files) $(INTEGRATION_OBJ_files) $(IMPL_OBJ_files)
+OBJ_files = $(addprefix $(OBJDIR)/,rstream.o rstreammanip.o rstringstream.o rlasterr.o rfilename.o riodevice.o rstdio.o rfile.o) $(UTILITY_OBJ_files) $(INTEGRATION_OBJ_files) $(IMPL_OBJ_files)
 
 # library file
-LIB_rlibrary = $(addprefix $(LIBDIR)/,librlibrary.a)
+LIB_rlibrary_name = librlibrary.a
+LIB_rlibrary = $(addprefix $(LIBDIR)/,$(LIB_rlibrary_name))
 
 $(LIB_rlibrary): $(OBJDIR) $(LIBDIR) $(OBJ_files)
 	$(BUILD_LIB) $(LIB_rlibrary) $(OBJ_files)
@@ -47,6 +48,10 @@ $(OBJDIR)/riodevice.o: riodevice.cpp riodevice_posix.cpp $(RIODEVICE_H) $(RLASTE
 $(OBJDIR)/rstdio.o: rstdio.cpp rstdio_posix.cpp $(RSTDIO_H) $(RSTREAMMANIP_H)
 	$(BUILD_OBJ) $(OBJ_OUT)rstdio.o rstdio.cpp -D RLIBRARY_BUILD_POSIX
 
+# [sys]
+$(OBJDIR)/rfile.o: rfile.cpp rfile_posix.cpp $(RFILE_H) $(RLASTERR_H)
+	$(BUILD_OBJ) $(OBJ_OUT)rfile.o rfile.cpp -D RLIBRARY_BUILD_POSIX
+
 # build other components of the library in subdirectories
 $(UTILITY_OBJ_files): utility/*.cpp
 	make -C utility
@@ -69,6 +74,10 @@ install: $(LOCINCDIR)
 	cp --verbose $(LIB_rlibrary) /usr/local/lib
 	cp --verbose *.h $(LOCINCDIR)
 	cp --verbose *.tcc $(LOCINCDIR)
+
+uninstall:
+	rm --verbose /usr/local/lib/$(LIB_rlibrary_name)
+	rm --verbose -rf $(LOCINCDIR)
 
 # create the directory in which the rlibrary headers
 # are to be placed
