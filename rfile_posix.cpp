@@ -77,7 +77,7 @@ bool file::resize(offset_type size)
         return ::ftruncate(iores->interpret_as<int>(),size) == 0;
     throw object_not_initialized_error();
 }
-void file::_openEvent(const char* deviceID,io_access_flag accessKind,void** arguments,dword count)
+void file::_openEvent(const char* deviceID,io_access_flag accessKind,io_resource** pinput,io_resource** poutput,void** arguments,dword count)
 {
     bool doesAppend = false;
     int flags = 0;
@@ -131,13 +131,13 @@ void file::_openEvent(const char* deviceID,io_access_flag accessKind,void** argu
             ::lseek(fd,0,SEEK_END);
         if (accessKind & read_access)
         {
-            _input = new io_resource;
-            _input->assign(fd);
+            *pinput = new io_resource;
+            (*pinput)->assign(fd);
         }
         if (accessKind & write_access)
         {
-            _output = new io_resource(_input == NULL);
-            _output->assign(fd);
+            *poutput = new io_resource(*pinput == NULL);
+            (*poutput)->assign(fd);
         }
     }
 }

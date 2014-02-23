@@ -110,9 +110,33 @@ namespace rtypes
         // copy operations reserved for derived classes for strict type enforcement;
         // the user should redirect to assign a device that's of a different type
         io_device(const io_device&); // creates a copy of the current IO context of the specified device
-        io_device& operator =(const io_device&); // unimplemented; disallow assignments
+        io_device& operator =(const io_device&); // unimplemented; disallow assignments like this
         io_device& _assign(const io_device&); // creates a copy of the current IO context of the specified device
+        io_device& _assign(io_resource* inputContext,io_resource* outputContext);
 
+        // derived class interface
+        const io_resource* _getValidContext() const;
+        io_resource* _getValidContext();
+        const io_resource* _getInputContext() const
+        { return _input; }
+        io_resource* _getInputContext()
+        { return _input; }
+        const io_resource* _getOutputContext() const
+        { return _output; }
+        io_resource* _getOutputContext()
+        { return _output; }
+        bool _openWithArgs(const char* deviceID,void** arguments,dword argumentCount);
+        bool _openInputWithArgs(const char* deviceID,void** arguments,dword argumentCount);
+        bool _openOutputWithArgs(const char* deviceID,void** arguments,dword argumentCount);
+
+        // generic read/write interface
+        void _readBuffer(void* buffer,size_type bytesToRead) const; // reads a buffer from the input device [sys]
+        void _readBuffer(const io_resource* context,void* buffer,size_type bytesToRead) const; // (from specified device context)
+        void _writeBuffer(const void* buffer,size_type length); // writes a buffer to the output device [sys]
+        void _writeBuffer(const io_resource* context,const void* buffer,size_type length); // (to specified device context)
+
+        static int& _ResourceRef(io_resource*);
+    private:
         io_resource* _input;
         io_resource* _output;
         stack<io_resource*> _redirInput;
@@ -120,18 +144,11 @@ namespace rtypes
         mutable io_operation_flag _lastOp;
         mutable size_type _byteCount;
 
-        // generic read/write interface
-        virtual void _readBuffer(void* buffer,size_type bytesToRead) const; // reads a buffer from the device [sys]
-        virtual void _writeBuffer(const void* buffer,size_type length); // writes a buffer to the device [sys]
-
-        const io_resource* _getValidContext() const;
-        io_resource* _getValidContext();
-
-        static int& _ResourceRef(io_resource*);
-    private:
         // abstract device interface
         virtual void _openEvent(const char* deviceID,
             io_access_flag accessKind,
+            io_resource** inputContext,
+            io_resource** outputContext,
             void** arguments = NULL,
             dword argumentCount = 0) = 0; // opens a device in a system specific manner
         virtual void _readAll(generic_string& buffer) const = 0; // reads all available data from the device into the specified buffer, resizing as necessary

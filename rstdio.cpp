@@ -42,8 +42,6 @@ standard_device::standard_device(const standard_device& device)
     _error = device._error;
     if (_error != NULL)
         ++_ResourceRef(_error);
-    // have to use derived version of is_valid_context
-    _lastOp = is_valid_context() ? no_operation : no_device;
 }
 standard_device::~standard_device()
 {
@@ -69,61 +67,24 @@ standard_device& standard_device::operator =(const standard_device& device)
         _error = device._error;
         if (_error != NULL)
             ++_ResourceRef(_error);
-        // have to use derived version of is_valid_context
-        _lastOp = is_valid_context() ? no_operation : no_device;
     }
     return *this;
 }
 void standard_device::write_error(const char* stringBuffer)
 {
     size_type t = rutil_strlen(stringBuffer);
-    _writeErrBuffer(stringBuffer,t);
+    _writeBuffer(_error,stringBuffer,t);
 }
 void standard_device::redirect(const standard_device& device)
 {
-    bool a, b, c;
-    a = device._input != NULL;
-    b = device._output != NULL;
-    c = device._error != NULL;
-    if (a)
-    {
-        // cache the last input reference in the stack
-        if (_input!=NULL || _output!=NULL || _error!=NULL)
-            _redirInput.push(_input);
-        _input = device._input;
-        ++_ResourceRef(_input);
-        // if a single context changes, the others must as well
-        if (!b)
-            _redirOutput.push(NULL);
-        if (!c)
-            _redirError.push(NULL);
-    }
-    if (b)
-    {
-        // cache the last output reference in the stack
-        if (_input!=NULL || _output!=NULL || _error!=NULL)
-            _redirOutput.push(_output);
-        _output = device._output;
-        ++_ResourceRef(_output);
-        // if a single context changes, the others must as well
-        if (!a)
-            _redirInput.push(NULL);
-        if (!c)
-            _redirError.push(NULL);
-    }
-    if (c)
-    {
-        // cache the last error reference in the stack
-        if (_input!=NULL || _output!=NULL || _error!=NULL)
-            _redirError.push(_error);
-        _error = device._error;
-        ++_ResourceRef(_error);
-        // if a single context changes, the others must as well
-        if (!a)
-            _redirInput.push(NULL);
-        if (!b)
-            _redirOutput.push(NULL);
-    }
+    // call the base class version
+    static_cast<io_device*>(this)->redirect(device);
+    // cache the last error reference in the stack; only perform
+    // operation if there was a single valid context among input,
+    // output and error
+    if (_getValidContext()!=NULL && _error!=NULL)
+        _redirError.push(_error);
+    ++_ResourceRef(_error = device._error);
 }
 void standard_device::redirect_error(const standard_device& device)
 {
@@ -139,21 +100,7 @@ bool standard_device::unredirect()
 {
     // this is a non-virtual override for this derivation; it un-redirects
     // the standard error context as well as the input and output contexts
-    bool success = false;
-    if ( !_redirInput.is_empty() )
-    {
-        if (_input!=NULL && --_ResourceRef(_input)<=0)
-            delete _input;
-        _input = _redirInput.pop();
-        success = true;
-    }
-    if ( !_redirOutput.is_empty() )
-    {
-        if (_output!=NULL && --_ResourceRef(_output)<=0)
-            delete _output;
-        _output = _redirOutput.pop();
-        success = true;
-    }
+    bool success = static_cast<io_device*>(this)->unredirect(); // call base-class member function
     if ( !_redirError.is_empty() )
     {
         if (_error!=NULL && --_ResourceRef(_error)<=0)

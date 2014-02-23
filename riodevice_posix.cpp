@@ -53,12 +53,68 @@ void io_device::_readBuffer(void* buffer,size_type bytesToRead) const
         _byteCount = 0;
     }
 }
+void io_device::_readBuffer(const io_resource* context,void* buffer,size_type bytesToRead) const
+{
+    if (context != NULL)
+    {
+        ssize_t bytesRead;
+        bytesRead = ::read(context->interpret_as<int>(),buffer,bytesToRead);
+        if (bytesRead == 0)
+        {
+            _lastOp = no_input;
+            _byteCount = 0;
+        }
+        else if (bytesRead <= -1)
+        {
+            _lastOp = bad_read;
+            _byteCount = 0;
+        }
+        else
+        {
+            _lastOp = success_read;
+            _byteCount = dword(bytesRead);
+        }
+    }
+    else
+    {
+        _lastOp = no_device;
+        _byteCount = 0;
+    }
+}
 void io_device::_writeBuffer(const void* buffer,size_type length)
 {
     if (_output != NULL)
     {
         ssize_t bytesWrote;
         bytesWrote = ::write(_output->interpret_as<int>(),buffer,length);
+        if (bytesWrote == 0)
+        {
+            _lastOp = no_output;
+            _byteCount = 0;
+        }
+        else if (bytesWrote <= -1)
+        {
+            _lastOp = bad_write;
+            _byteCount = 0;
+        }
+        else
+        {
+            _lastOp = success_write;
+            _byteCount = dword(bytesWrote);
+        }
+    }
+    else
+    {
+        _lastOp = no_device;
+        _byteCount = 0;
+    }
+}
+void io_device::_writeBuffer(const io_resource* context,const void* buffer,size_type length)
+{
+    if (context != NULL)
+    {
+        ssize_t bytesWrote;
+        bytesWrote = ::write(context->interpret_as<int>(),buffer,length);
         if (bytesWrote == 0)
         {
             _lastOp = no_output;

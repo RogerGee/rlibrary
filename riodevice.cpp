@@ -91,7 +91,7 @@ bool io_device::open(const char* deviceID)
 {
     if (_input!=NULL || _output!=NULL)
         return false; // must close both first
-    _openEvent(deviceID,all_access); // might open both or just one
+    _openEvent(deviceID,all_access,&_input,&_output); // might open both or just one
     if (_input!=NULL || _output!=NULL)
     {
         _lastOp = no_operation;
@@ -103,7 +103,7 @@ bool io_device::open_input(const char* deviceID)
 {
     if (_input != NULL)
         return false; // must close input first
-    _openEvent(deviceID,read_access); // should only open input
+    _openEvent(deviceID,read_access,&_input,NULL); // should only open input
     if (_input != NULL)
     {
         _lastOp = no_operation;
@@ -115,7 +115,7 @@ bool io_device::open_output(const char* deviceID)
 {
     if (_output != NULL)
         return false; // must close output first
-    _openEvent(deviceID,write_access);
+    _openEvent(deviceID,write_access,NULL,&_output);
     if (_output != NULL) // should only open output
     {
         _lastOp = no_operation;
@@ -125,27 +125,19 @@ bool io_device::open_output(const char* deviceID)
 }
 void io_device::redirect(const io_device& device)
 {
-    bool a, b;
-    a = device._input != NULL;
-    b = device._output != NULL;
-    if (a)
+    if (device._input!=NULL || device._output!=NULL)
     {
-        // cache the last input reference in the stack
+        // cache the last state if at least one 
+        // valid context exists
         if (_input!=NULL || _output!=NULL)
+        {
             _redirInput.push(_input);
-        _input = device._input;
-        ++_input->_reference;
-        if (!b) // if one context changes, the other must as well
-            _redirOutput.push(NULL);
-    }
-    if (b)
-    {
-        if (_input!=NULL || _output!=NULL) // cache the last output reference in the stack
             _redirOutput.push(_output);
-        _output = device._output;
-        ++_output->_reference;
-        if (!a) // if one context changes, the other must as well
-            _redirInput.push(NULL);
+        }
+        // assign context references from device;
+        // increment the reference count
+        ++(_input = device._input)->_reference;
+        ++(_output = device._output)->_reference;
     }
 }
 void io_device::redirect_input(const io_device& device)
@@ -154,8 +146,7 @@ void io_device::redirect_input(const io_device& device)
     {
         if (_input != NULL) // cache the last input reference in the stack
             _redirInput.push(_input);
-        _input = device._input;
-        ++_input->_reference;
+        ++(_input = device._input)->_reference;
     }
 }
 void io_device::redirect_output(const io_device& device)
@@ -164,13 +155,15 @@ void io_device::redirect_output(const io_device& device)
     {
         if (_output != NULL) // cache the last output reference in the stack
             _redirOutput.push(_output);
-        _output = device._output;
-        ++_output->_reference;
+        ++(_output = device._output)->_reference;
     }
 }
 bool io_device::unredirect()
 {
     bool success = false;
+    // attempt to pop a context from
+    // either stack; lose reference to
+    // current context(s) (decrement count)
     if ( !_redirInput.is_empty() )
     {
         if (_input!=NULL && --_input->_reference<=0)
@@ -189,6 +182,9 @@ bool io_device::unredirect()
 }
 bool io_device::unredirect_input()
 {
+    // attempt to pop an input context
+    // from the stack; lose reference to 
+    // current context (decrement count)
     if ( !_redirInput.is_empty() )
     {
         if (_input!=NULL && --_input->_reference<=0)
@@ -200,6 +196,9 @@ bool io_device::unredirect_input()
 }
 bool io_device::unredirect_output()
 {
+    // attempt to pop an output context
+    // from the stack; lose reference to 
+    // current context (decrement count)
     if ( !_redirOutput.is_empty() )
     {
         if (_output!=NULL && --_output->_reference<=0)
@@ -292,6 +291,22 @@ io_device& io_device::_assign(const io_device& device)
     }
     return *this;
 }
+io_device& io_device::_assign(io_resource* inputContext,io_resource* outputContext)
+{
+    if (_input!=NULL && --_input->_reference<=0)
+        delete _input;
+    _input = inputContext;
+    if (_input != NULL)
+        ++_input->_reference;
+    if (_output!=NULL && --_output->_reference<=0)
+        delete _output;
+    _output = outputContext;
+    if (_output != NULL)
+        ++_output->_reference;
+    _lastOp = is_valid_context() ? no_operation : no_device;
+    _byteCount = 0;
+    return *this;
+}
 const io_resource* io_device::_getValidContext() const
 {
     if (_input != NULL)
@@ -307,6 +322,42 @@ io_resource* io_device::_getValidContext()
     if (_output != NULL)
         return _output;
     return NULL;
+}
+bool io_device::_openWithArgs(const char* deviceID,void** arguments,dword argumentCount)
+{
+    if (_input!=NULL || _output!=NULL)
+        return false; // must close both first
+    _openEvent(deviceID,all_access,&_input,&_output,arguments,argumentCount); // might open both or just one
+    if (_input!=NULL || _output!=NULL)
+    {
+        _lastOp = no_operation;
+        return true;
+    }
+    return false;
+}
+bool io_device::_openInputWithArgs(const char* deviceID,void** arguments,dword argumentCount)
+{
+    if (_input != NULL)
+        return false; // must close input first
+    _openEvent(deviceID,read_access,&_input,NULL,arguments,argumentCount); // should only open input
+    if (_input != NULL)
+    {
+        _lastOp = no_operation;
+        return true;
+    }
+    return false;
+}
+bool io_device::_openOutputWithArgs(const char* deviceID,void** arguments,dword argumentCount)
+{
+    if (_output != NULL)
+        return false; // must close output first
+    _openEvent(deviceID,write_access,NULL,&_output,arguments,argumentCount); // should only open output
+    if (_output != NULL) // should only open output
+    {
+        _lastOp = no_operation;
+        return true;
+    }
+    return false;
 }
 /* static */ int& io_device::_ResourceRef(io_resource* pres)
 {

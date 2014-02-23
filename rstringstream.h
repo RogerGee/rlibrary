@@ -7,6 +7,7 @@
 #ifndef RSTRINGSTREAM_H
 #define RSTRINGSTREAM_H
 #include "rstream.h"
+#include "rstreammanip.h" // each stream type makes good use of these
 
 namespace rtypes
 {

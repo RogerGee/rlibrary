@@ -3,7 +3,7 @@
 using namespace rtypes;
 
 // rtypes::file
-void file::_openEvent(const char* deviceID,io_access_flag accessKind,void** arguments,dword count)
+void file::_openEvent(const char* deviceID,io_access_flag accessKind,io_resource** pinput,io_resource** poutput,void** arguments,dword count)
 {
     bool doesAppend;
     HANDLE hFile;
@@ -68,13 +68,13 @@ void file::_openEvent(const char* deviceID,io_access_flag accessKind,void** argu
         }
         if (accessKind & read_access)
         {
-            _input = new io_resource;
-            _input->assign(hFile);
+            *pinput = new io_resource;
+            (*pinput)->assign(hFile);
         }
         if (accessKind & write_access)
         {
-            _output = new io_resource(_input == NULL);
-            _output->assign(hFile);
+            *poutput = new io_resource(*pinput == NULL);
+            (*poutput)->assign(hFile);
         }
     }
 }

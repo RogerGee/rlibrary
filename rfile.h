@@ -44,6 +44,8 @@ namespace rtypes
     private:
         virtual void _openEvent(const char* deviceID,
             io_access_flag accessKind,
+            io_resource** inputContext,
+            io_resource** outputContext,
             void** arguments = NULL,
             dword argumentCount = 0); // [sys]
         virtual void _readAll(generic_string& buffer) const; // [sys]

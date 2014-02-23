@@ -20,59 +20,32 @@ bool standard_device::clear_screen()
     // the screen; I use FillConsoleOutputCharacter
     // and pass it a huge number so that it fills
     // up every character cell
-    if (_output != NULL)
+    io_resource* output = _getOutputContext();
+    if (output != NULL)
     {
         DWORD dummy;
         COORD loc = {0,0};
-        if ( ::FillConsoleOutputCharacter(_output->interpret_as<HANDLE>(),' ',0xffffffff,loc,&dummy) )
+        if ( ::FillConsoleOutputCharacter(output->interpret_as<HANDLE>(),' ',0xffffffff,loc,&dummy) )
         {
             // be friendly and reset the cursor to the top
-            ::SetConsoleCursorPosition(_output->interpret_as<HANDLE>(),loc);
+            ::SetConsoleCursorPosition(output->interpret_as<HANDLE>(),loc);
             return true;
         }
     }
     return false;
 }
-void standard_device::_writeErrBuffer(const void* buffer,size_type length)
-{
-    if (_error != NULL)
-    {
-        DWORD bytesWrote;
-        if ( !::WriteFile(_error->interpret_as<HANDLE>(),buffer,length,&bytesWrote,NULL) )
-        {
-            _lastOp = bad_write;
-            _byteCount = 0;
-        }
-        else if (bytesWrote == 0)
-        {
-            _lastOp = no_output;
-            _byteCount = 0;
-        }
-        else
-        {
-            _lastOp = success_write;
-            _byteCount = bytesWrote;
-
-        }
-    }
-    else
-    {
-        _lastOp = no_device;
-        _byteCount = 0;
-    }
-}
-void standard_device::_openEvent(const char*,io_access_flag kind,void**,dword)
+void standard_device::_openEvent(const char*,io_access_flag kind,io_resource** pinput,io_resource** poutput,void**,dword)
 {
     HANDLE hStdHandle;
     if (kind & read_access)
     {
-        _input = new io_resource(false);
-        _input->assign( ::GetStdHandle(STD_INPUT_HANDLE) );
+        *pinput = new io_resource(false);
+        (*pinput)->assign( ::GetStdHandle(STD_INPUT_HANDLE) );
     }
     if (kind & write_access)
     {
-        _output = new io_resource(false);
-        _output->assign( ::GetStdHandle(STD_OUTPUT_HANDLE) );
+        *poutput = new io_resource(false);
+        (*poutput)->assign( ::GetStdHandle(STD_OUTPUT_HANDLE) );
     }
     if (kind == all_access)
     {

@@ -2,7 +2,7 @@
  *  This file should never be targeted directly; it's merely an implementation file referenced conditionally.
  */
 
-// include POSIX and other system headers
+// include system headers
 #include <unistd.h>
 using namespace rtypes;
 
@@ -18,52 +18,25 @@ bool standard_device::clear_screen()
     // (as a convinience) see if the device
     // is a terminal and send it the ASCII
     // escape code for clearing the screen
-    if (isatty( _output->interpret_as<int>() ))
+    io_resource* output = _getOutputContext();
+    if (::isatty( output->interpret_as<int>() ))
     {
         
         return true;
     }
     return false;
 }
-void standard_device::_writeErrBuffer(const void* buffer,size_type length)
-{
-    if (_error != NULL)
-    {
-        ssize_t bytesWrote;
-        bytesWrote = ::write(_error->interpret_as<int>(),buffer,length);
-        if (bytesWrote == 0)
-        {
-            _lastOp = no_output;
-            _byteCount = 0;
-        }
-        else if (bytesWrote <= -1)
-        {
-            _lastOp = bad_write;
-            _byteCount = 0;
-        }
-        else
-        {
-            _lastOp = success_write;
-            _byteCount = size_type(bytesWrote);
-        }
-    }
-    else
-    {
-        _lastOp = no_device;
-        _byteCount = 0;
-    }
-}
-void standard_device::_openEvent(const char*,io_access_flag kind,void**,dword)
+void standard_device::_openEvent(const char*,io_access_flag kind,io_resource** pinput,io_resource** poutput,void**,dword)
 {
     if (kind & read_access)
     {
-        _input = new io_resource(false);
-        _input->assign(STDIN_FILENO);
+        *pinput = new io_resource(false);
+        (*pinput)->assign(STDIN_FILENO);
     }
     if (kind & write_access)
     {
-        _output = new io_resource(false);
-        _output->assign(STDOUT_FILENO);
+        *poutput = new io_resource(false);
+        (*poutput)->assign(STDOUT_FILENO);
     }
     if (kind == all_access)
     {

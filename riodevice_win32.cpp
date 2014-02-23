@@ -52,12 +52,67 @@ void io_device::_readBuffer(void* buffer,dword bytesToRead) const
         _byteCount = 0;
     }
 }
+void io_device::_readBuffer(const io_resource* context,void* buffer,dword bytesToRead) const
+{
+    if (context != NULL)
+    {
+        DWORD bytesRead;
+        if ( !::ReadFile(context->interpret_as<HANDLE>(),buffer,bytesToRead,&bytesRead,NULL) )
+        {
+            _lastOp = bad_read;
+            _byteCount = 0;
+        }
+        else if (bytesRead == 0)
+        {
+            _lastOp = no_input;
+            _byteCount = 0;
+        }
+        else
+        {
+            _lastOp = success_read;
+            _byteCount = bytesRead;
+        }
+    }
+    else
+    {
+        _lastOp = no_device;
+        _byteCount = 0;
+    }
+}
 void io_device::_writeBuffer(const void* buffer,dword length)
 {
     if (_output != NULL)
     {
         DWORD bytesWrote;
         if ( !::WriteFile(_output->interpret_as<HANDLE>(),buffer,length,&bytesWrote,NULL) )
+        {
+            _lastOp = bad_write;
+            _byteCount = 0;
+        }
+        else if (bytesWrote == 0)
+        {
+            _lastOp = no_output;
+            _byteCount = 0;
+        }
+        else
+        {
+            _lastOp = success_write;
+            _byteCount = bytesWrote;
+
+        }
+    }
+    else
+    {
+        _lastOp = no_device;
+        _byteCount = 0;
+    }
+}
+void io_device::_writeBuffer(const io_resource* context,const void* buffer,dword length)
+{
+    if (context != NULL)
+    {
+        DWORD bytesWrote;
+        if ( !::WriteFile(context->interpret_as<HANDLE>(),buffer,length,&bytesWrote,NULL) )
         {
             _lastOp = bad_write;
             _byteCount = 0;

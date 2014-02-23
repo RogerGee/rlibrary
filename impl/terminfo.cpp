@@ -2,12 +2,12 @@
 #include "terminfo.h"
 #include "rstack.h"
 #include "rstdio.h"
-#include <unistd.h>
-#include <stdlib.h>
 #include "rstringstream.h"
 #include "rfilename.h"
 #include "rstdio.h"
-// #include "rfile.h"
+#include "rfile.h"
+#include <unistd.h>
+#include <stdlib.h>
 using namespace rtypes;
 using namespace rtypes::rimpl;
 
@@ -281,12 +281,16 @@ terminfo::terminfo()
                     filename fnTerminfo(pcur,term);
                     if ( fnTerminfo.exists() )
                     {
-                        //if ( !_read(bstream) )
-                        //    throw terminfo_parse_error();
+                        file_binary_stream bstream;
+                        if ( !bstream.get_device().open_input(fnTerminfo.get_full_name().c_str(),file_open_existing) )
+                            continue;
+                        if ( !_read(bstream) )
+                            throw terminfo_parse_error();
                         return;
                     }
                 }
             }
+            throw terminfo_not_found_error();
         }
     }
     throw terminfo_environment_error();

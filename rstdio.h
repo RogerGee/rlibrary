@@ -25,10 +25,10 @@ namespace rtypes
 
         // error IO operations
         void write_error(const generic_string& buffer) // writes the size of the specified string buffer to the device's error context
-        { _writeErrBuffer(buffer.c_str(),buffer.size()); }
+        { _writeBuffer(_error,buffer.c_str(),buffer.size()); }
         void write_error(const char* stringBuffer); // writes null-terminated string buffer to the device's error context
         void write_error(const void* buffer,size_type length) // writes the specified buffer to the device's error context
-        { _writeErrBuffer(buffer,length); }
+        { _writeBuffer(_error,buffer,length); }
 
         // error functionality
         bool open_error(const char* deviceID = NULL); // opens only the standard error device [sys]
@@ -46,12 +46,10 @@ namespace rtypes
         bool clear_screen(); // attempts to clear the screen if the device is a console/terminal; returns false if the operation could not be performed [sys]
     protected:
         io_resource* _error;
-
-        virtual void _writeErrBuffer(const void* buffer,size_type length); // write buffer to standard-error channel [sys]
     private:
         stack<io_resource*> _redirError;
 
-        virtual void _openEvent(const char*,io_access_flag,void**,dword);
+        virtual void _openEvent(const char*,io_access_flag,io_resource**,io_resource**,void**,dword);
         virtual void _readAll(generic_string&) const;
         virtual void _closeEvent(io_access_flag);
     };

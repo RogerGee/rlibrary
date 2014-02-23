@@ -67,9 +67,12 @@ namespace rtypes
 
         /* dummy classes for terminfo errors
          *  - terminfo_environment_error: TERM environment not set up
+         *  - terminfo_not_found_error: TERM was specified but not found in any of the standard search locations
+         *  - terminfo_parse_error: TERMINFO file wasn't formatted as expected
          *  - terminfo_lookup_error: capability was not found
          */
         class terminfo_environment_error { /* ... */ };
+        class terminfo_not_found_error { /* ... */ };
         class terminfo_parse_error { /* ... */ };
         class terminfo_lookup_error { /* ... */ };
 

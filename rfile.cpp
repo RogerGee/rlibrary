@@ -25,50 +25,25 @@ file::file()
 }
 file::file(const char* fileName,file_open_mode mode)
 {
-    if ( !open(fileName,mode) )
-        throw *rlib_last_error::get();
+    open(fileName,mode);
 }
 bool file::open(const char* fileName,file_open_mode mode)
 {
-    if (_input!=NULL || _output!=NULL)
-        return false; // must close both first
     void* args[1];
     args[0] = &mode;
-    _openEvent(fileName,all_access,args,1);
-    if (_input!=NULL || _output!=NULL)
-    {
-        _lastOp = no_operation;
-        return true;
-    }
-    return false;
+    return _openWithArgs(fileName,args,1);
 }
 bool file::open_input(const char* fileName,file_open_mode mode)
 {
-    if (_input != NULL)
-        return false; // must close input first
     void* args[1];
     args[0] = &mode;
-    _openEvent(fileName,read_access,args,1);
-    if (_input != NULL)
-    {
-        _lastOp = no_operation;
-        return true;
-    }
-    return false;
+    return _openInputWithArgs(fileName,args,1);
 }
 bool file::open_output(const char* fileName,file_open_mode mode)
 {
-    if (_output != NULL)
-        return false; // must close output first
     void* args[1];
     args[0] = &mode;
-    _openEvent(fileName,write_access,args,1);
-    if (_output != NULL)
-    {
-        _lastOp = no_operation;
-        return true;
-    }
-    return false;
+    return _openOutputWithArgs(fileName,args,1);
 }
 void file::_closeEvent(io_access_flag)
 {
