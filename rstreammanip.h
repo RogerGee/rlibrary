@@ -68,9 +68,9 @@ namespace rtypes
     class setw : public rstream_manipulator
     {
     public:
-        setw(word numericWidth);
+        setw(uint16 numericWidth);
     private:
-        word nwidth;
+        uint16 nwidth;
 
         virtual void operation(rstream& stream) const;
     };

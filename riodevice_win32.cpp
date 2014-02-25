@@ -25,7 +25,7 @@ io_resource::~io_resource()
 }
 
 // rtypes::io_device
-void io_device::_readBuffer(void* buffer,dword bytesToRead) const
+void io_device::_readBuffer(void* buffer,uint32 bytesToRead) const
 {
     if (_input != NULL)
     {
@@ -52,7 +52,7 @@ void io_device::_readBuffer(void* buffer,dword bytesToRead) const
         _byteCount = 0;
     }
 }
-void io_device::_readBuffer(const io_resource* context,void* buffer,dword bytesToRead) const
+void io_device::_readBuffer(const io_resource* context,void* buffer,uint32 bytesToRead) const
 {
     if (context != NULL)
     {
@@ -79,7 +79,7 @@ void io_device::_readBuffer(const io_resource* context,void* buffer,dword bytesT
         _byteCount = 0;
     }
 }
-void io_device::_writeBuffer(const void* buffer,dword length)
+void io_device::_writeBuffer(const void* buffer,uint32 length)
 {
     if (_output != NULL)
     {
@@ -107,7 +107,7 @@ void io_device::_writeBuffer(const void* buffer,dword length)
         _byteCount = 0;
     }
 }
-void io_device::_writeBuffer(const io_resource* context,const void* buffer,dword length)
+void io_device::_writeBuffer(const io_resource* context,const void* buffer,uint32 length)
 {
     if (context != NULL)
     {

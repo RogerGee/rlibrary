@@ -50,7 +50,7 @@ bool rstringstream::_inDevice() const
 void rstringstream::_outDevice()
 {
     const char* data = &_bufOut.peek();
-    for (dword i = 0;i<_bufOut.size();i++,_odeviceIter++)
+    for (uint32 i = 0;i<_bufOut.size();i++,_odeviceIter++)
         if (_odeviceIter < _device->length()) // replace existing character
             _device->operator[](_odeviceIter) = data[i];
         else // grow the string
@@ -145,7 +145,7 @@ bool rbinstringstream::_inDevice() const
 void rbinstringstream::_outDevice()
 {
     const char* data = &_bufOut.peek();
-    for (dword i = 0;i<_bufOut.size();i++,_odeviceIter++)
+    for (uint32 i = 0;i<_bufOut.size();i++,_odeviceIter++)
         if (_odeviceIter < _device->length()) // replace existing character
             _device->operator[](_odeviceIter) = data[i];
         else // grow the string

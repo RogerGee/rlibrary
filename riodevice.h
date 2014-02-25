@@ -125,9 +125,9 @@ namespace rtypes
         { return _output; }
         io_resource* _getOutputContext()
         { return _output; }
-        bool _openWithArgs(const char* deviceID,void** arguments,dword argumentCount);
-        bool _openInputWithArgs(const char* deviceID,void** arguments,dword argumentCount);
-        bool _openOutputWithArgs(const char* deviceID,void** arguments,dword argumentCount);
+        bool _openWithArgs(const char* deviceID,void** arguments,uint32 argumentCount);
+        bool _openInputWithArgs(const char* deviceID,void** arguments,uint32 argumentCount);
+        bool _openOutputWithArgs(const char* deviceID,void** arguments,uint32 argumentCount);
 
         // generic read/write interface
         void _readBuffer(void* buffer,size_type bytesToRead) const; // reads a buffer from the input device [sys]
@@ -150,7 +150,7 @@ namespace rtypes
             io_resource** inputContext,
             io_resource** outputContext,
             void** arguments = NULL,
-            dword argumentCount = 0) = 0; // opens a device in a system specific manner
+            uint32 argumentCount = 0) = 0; // opens a device in a system specific manner
         virtual void _readAll(generic_string& buffer) const = 0; // reads all available data from the device into the specified buffer, resizing as necessary
         virtual void _closeEvent(io_access_flag shutdownKind) = 0; // called whenever a device is completely shutdown
     };

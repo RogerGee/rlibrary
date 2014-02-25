@@ -49,7 +49,7 @@ namespace rtypes
     private:
         stack<io_resource*> _redirError;
 
-        virtual void _openEvent(const char*,io_access_flag,io_resource**,io_resource**,void**,dword);
+        virtual void _openEvent(const char*,io_access_flag,io_resource**,io_resource**,void**,uint32);
         virtual void _readAll(generic_string&) const;
         virtual void _closeEvent(io_access_flag);
     };

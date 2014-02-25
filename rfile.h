@@ -9,8 +9,8 @@
 
 namespace rtypes
 {
-    typedef qword offset_type;
-    typedef long long int offset_seek_type;
+    typedef uint64 offset_type;
+    typedef int64 offset_seek_type;
 
     /* file
      *  represents an object that wraps file
@@ -47,7 +47,7 @@ namespace rtypes
             io_resource** inputContext,
             io_resource** outputContext,
             void** arguments = NULL,
-            dword argumentCount = 0); // [sys]
+            uint32 argumentCount = 0); // [sys]
         virtual void _readAll(generic_string& buffer) const; // [sys]
         virtual void _closeEvent(io_access_flag shutdownKind);
     };

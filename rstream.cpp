@@ -102,13 +102,13 @@ void stream_base::place(const stream_base& obj)
     // take all data from the stream and
     // place it into this stream; place only
     // buffered data
-    dword len = obj._bufOut.size();
+    uint32 len = obj._bufOut.size();
     const char* data = &obj._bufOut.peek();
     _bufOut.push_range(data,len);
 }
-void stream_base::repeat(char c,dword times)
+void stream_base::repeat(char c,uint32 times)
 {
-    for (dword i = 0;i<times;i++)
+    for (uint32 i = 0;i<times;i++)
         _bufOut.push(c);
 }
 void stream_base::set_input_iter(size_type iter)
@@ -195,7 +195,7 @@ void rstream::remove_extra_delimiter(const char* pdelims)
 void rstream::remove_extra_delimiter(const generic_string& delimiterString)
 {
     // attempt to remove all delimiters in the string
-    for (dword i = 0;i<delimiterString.length();i++)
+    for (uint32 i = 0;i<delimiterString.length();i++)
         if ( _delimits.contains( delimiterString[i] ) )
             _delimits.remove( delimiterString[i] );
 }
@@ -211,9 +211,9 @@ bool rstream::delimit_whitespace(bool yes)
     _delimitWhitespace = yes;
     return b;
 }
-word rstream::width(word wide)
+uint16 rstream::width(uint16 wide)
 {
-    word tmp = _width;
+    uint16 tmp = _width;
     _width = wide;
     return tmp;
 }
@@ -346,7 +346,7 @@ rstream& rstream::operator >>(short& var)
     var = _fromString<short> (s,_lastSuccess);
     return *this;
 }
-rstream& rstream::operator >>(word& var)
+rstream& rstream::operator >>(uint16& var)
 {
     str s;
     char input;
@@ -368,7 +368,7 @@ rstream& rstream::operator >>(word& var)
         _lastSuccess = false;
         return *this;
     }
-    var = _fromString<word> (s,_lastSuccess);
+    var = _fromString<uint16> (s,_lastSuccess);
     return *this;
 }
 rstream& rstream::operator >>(int& var)
@@ -396,7 +396,7 @@ rstream& rstream::operator >>(int& var)
     var = _fromString<int> (s,_lastSuccess);
     return *this;
 }
-rstream& rstream::operator >>(dword& var)
+rstream& rstream::operator >>(uint32& var)
 {
     str s;
     char input;
@@ -418,7 +418,7 @@ rstream& rstream::operator >>(dword& var)
         _lastSuccess = false;
         return *this;
     }
-    var = _fromString<dword> (s,_lastSuccess);
+    var = _fromString<uint32> (s,_lastSuccess);
     return *this;
 }
 rstream& rstream::operator >>(long& var)
@@ -471,7 +471,7 @@ rstream& rstream::operator >>(unsigned long& var)
     var = _fromString<unsigned long> (s,_lastSuccess);
     return *this;
 }
-rstream& rstream::operator >>(long long& var)
+rstream& rstream::operator >>(int64& var)
 {
     str s;
     char input;
@@ -493,10 +493,10 @@ rstream& rstream::operator >>(long long& var)
         _lastSuccess = false;
         return *this;
     }
-    var = _fromString<long long> (s,_lastSuccess);
+    var = _fromString<int64> (s,_lastSuccess);
     return *this;
 }
-rstream& rstream::operator >>(qword& var)
+rstream& rstream::operator >>(uint64& var)
 {
     str s;
     char input;
@@ -518,7 +518,7 @@ rstream& rstream::operator >>(qword& var)
         _lastSuccess = false;
         return *this;
     }
-    var = _fromString<qword> (s,_lastSuccess);
+    var = _fromString<uint64> (s,_lastSuccess);
     return *this;
 }
 rstream& rstream::operator >>(float&)
@@ -555,7 +555,7 @@ rstream& rstream::operator >>(void*& var)
         _lastSuccess = false;
         return *this;
     }
-    var = reinterpret_cast<void*> (_fromString<dword> (s,_lastSuccess));
+    var = reinterpret_cast<void*> (_fromString<uint32> (s,_lastSuccess));
     return *this;
 }
 rstream& rstream::operator >>(generic_string& var)
@@ -606,7 +606,7 @@ rstream& rstream::operator <<(short s)
         _outDevice();
     return *this;
 }
-rstream& rstream::operator <<(word w)
+rstream& rstream::operator <<(uint16 w)
 {
     _pushBackNumeric(w,false);
     if (!_doesBuffer)
@@ -620,7 +620,7 @@ rstream& rstream::operator <<(int i)
         _outDevice();
     return *this;
 }
-rstream& rstream::operator <<(dword d)
+rstream& rstream::operator <<(uint32 d)
 {
     _pushBackNumeric(d,false);
     if (!_doesBuffer)
@@ -641,14 +641,14 @@ rstream& rstream::operator <<(unsigned long ul)
         _outDevice();
     return *this;
 }
-rstream& rstream::operator <<(const long long& l)
+rstream& rstream::operator <<(const int64& l)
 {
     _pushBackNumeric(l,l<0);
     if (!_doesBuffer)
         _outDevice();
     return *this;
 }
-rstream& rstream::operator <<(const qword& q)
+rstream& rstream::operator <<(const uint64& q)
 {
     _pushBackNumeric(q,false);
     if (!_doesBuffer)
@@ -663,13 +663,13 @@ rstream& rstream::operator <<(float)
 rstream& rstream::operator <<(const double& d)
 {
     // interpret the double as an integer of 64 bits
-    const qword* data = reinterpret_cast<const qword*> (&d);
+    const uint64* data = reinterpret_cast<const uint64*> (&d);
     // constants
     const short EXPONENT_BIAS = 1023;
     const short MAX_BASE10_POWER = 18;
     // locals
     str rep;
-    qword sig;
+    uint64 sig;
     short expn;
     bool sign;
     // obtain the different parts of the double-precision floating point number
@@ -688,7 +688,7 @@ rstream& rstream::operator <<(const double& d)
     {
         // apply implicit 1 to significand if the number is normalized
         if (expn != 0x000)
-            sig |= qword(1)<<52;
+            sig |= uint64(1)<<52;
         // apply the exponent bias (excess)
         expn -= EXPONENT_BIAS;
         // add prefixes to string
@@ -706,14 +706,14 @@ rstream& rstream::operator <<(const double& d)
             else
                 sig >>= _abs(expn);
             // calculate the fraction part
-            qword var = 1;
+            uint64 var = 1;
             for (short i = 1;i<=MAX_BASE10_POWER;i++)
             {
                 var *= 10;
                 if ((sig>>(52-i)) & 1)
                 {
-                    qword powerOfTen = _pow(qword(10),qword(i));
-                    qword powerOfTwo = 1 << i;
+                    uint64 powerOfTen = _pow(uint64(10),uint64(i));
+                    uint64 powerOfTwo = 1 << i;
                     var += powerOfTen / powerOfTwo;
                 }
             }
@@ -721,7 +721,7 @@ rstream& rstream::operator <<(const double& d)
             stack<char> digits;
             while (var != 0)
             {
-                char digit = var % qword(10);
+                char digit = var % uint64(10);
                 if (digit!=0/*ignore trailing zeros*/ || digits.count()>0)
                     digits.push('0'+digit);
                 var /= 10;
@@ -746,7 +746,7 @@ rstream& rstream::operator <<(const void* p)
 {
     numeric_representation nFlag = _repFlag;
     _repFlag = hexadecimal;
-    _pushBackNumeric<qword>(reinterpret_cast<qword>(p),false,"0x");
+    _pushBackNumeric<uint64>(reinterpret_cast<uint64>(p),false,"0x");
     _repFlag = nFlag;
     if (!_doesBuffer)
         _outDevice();
@@ -795,8 +795,8 @@ void rstream::_pushBackNumeric(Numeric n,bool isNeg,const char* prefix)
 {
     if (isNeg && _repFlag!=decimal) // occurs for signed types only - this preserves byte values for non-decimal reps
     {
-        qword mask = 0; // will mask bits not needed by the size of Numeric
-        qword q = n; // treat n (Numeric) as an unsigned value
+        uint64 mask = 0; // will mask bits not needed by the size of Numeric
+        uint64 q = n; // treat n (Numeric) as an unsigned value
         for (size_type i = 0;i<sizeof(Numeric);i++)
         {
             mask <<= 8;
@@ -967,11 +967,11 @@ rbinstream& rbinstream::operator >>(short& var)
     var = _fromString<short>(data,_lastSuccess);
     return *this;
 }
-rbinstream& rbinstream::operator >>(word& var)
+rbinstream& rbinstream::operator >>(uint16& var)
 {
-    str data(sizeof(word));
+    str data(sizeof(uint16));
     // load data
-    for (size_type i = 0;i<sizeof(word);i++)
+    for (size_type i = 0;i<sizeof(uint16);i++)
     {
         if (!_popInput(data[i]))
         {
@@ -980,7 +980,7 @@ rbinstream& rbinstream::operator >>(word& var)
         }
     }
     // calc. value
-    var = _fromString<word>(data,_lastSuccess);
+    var = _fromString<uint16>(data,_lastSuccess);
     return *this;
 }
 rbinstream& rbinstream::operator >>(int& var)
@@ -999,11 +999,11 @@ rbinstream& rbinstream::operator >>(int& var)
     var = _fromString<int>(data,_lastSuccess);
     return *this;
 }
-rbinstream& rbinstream::operator >>(dword& var)
+rbinstream& rbinstream::operator >>(uint32& var)
 {
-    str data(sizeof(dword));
+    str data(sizeof(uint32));
     // load data
-    for (size_type i = 0;i<sizeof(dword);i++)
+    for (size_type i = 0;i<sizeof(uint32);i++)
     {
         if (!_popInput(data[i]))
         {
@@ -1012,7 +1012,7 @@ rbinstream& rbinstream::operator >>(dword& var)
         }
     }
     // calc. value
-    var = _fromString<dword>(data,_lastSuccess);
+    var = _fromString<uint32>(data,_lastSuccess);
     return *this;
 }
 rbinstream& rbinstream::operator >>(long& var)
@@ -1047,11 +1047,11 @@ rbinstream& rbinstream::operator >>(unsigned long& var)
     var = _fromString<unsigned long>(data,_lastSuccess);
     return *this;
 }
-rbinstream& rbinstream::operator >>(long long& var)
+rbinstream& rbinstream::operator >>(int64& var)
 {
-    str data(sizeof(long long));
+    str data(sizeof(int64));
     // load data
-    for (size_type i = 0;i<sizeof(long long);i++)
+    for (size_type i = 0;i<sizeof(int64);i++)
     {
         if (!_popInput(data[i]))
         {
@@ -1060,14 +1060,14 @@ rbinstream& rbinstream::operator >>(long long& var)
         }
     }
     // calc. value
-    var = _fromString<long long>(data,_lastSuccess);
+    var = _fromString<int64>(data,_lastSuccess);
     return *this;
 }
-rbinstream& rbinstream::operator >>(qword& var)
+rbinstream& rbinstream::operator >>(uint64& var)
 {
-    str data(sizeof(qword));
+    str data(sizeof(uint64));
     // load data
-    for (size_type i = 0;i<sizeof(qword);i++)
+    for (size_type i = 0;i<sizeof(uint64);i++)
     {
         if (!_popInput(data[i]))
         {
@@ -1076,7 +1076,7 @@ rbinstream& rbinstream::operator >>(qword& var)
         }
     }
     // calc. value
-    var = _fromString<qword>(data,_lastSuccess);
+    var = _fromString<uint64>(data,_lastSuccess);
     return *this;
 }
 rbinstream& rbinstream::operator >>(double& var)
@@ -1092,7 +1092,7 @@ rbinstream& rbinstream::operator >>(double& var)
         }
     }
     // calc. value
-    qword rep = _fromString<qword>(data,_lastSuccess);
+    uint64 rep = _fromString<uint64>(data,_lastSuccess);
     var = *reinterpret_cast<double*> (&rep);
     return *this;
 }
@@ -1109,7 +1109,7 @@ rbinstream& rbinstream::operator >>(void*& var)
         }
     }
     // calc. value
-    var = reinterpret_cast<void*> (_fromString<dword>(data,_lastSuccess));
+    var = reinterpret_cast<void*> (_fromString<uint32>(data,_lastSuccess));
     return *this;
 }
 rbinstream& rbinstream::operator >>(generic_string& var)
@@ -1167,7 +1167,7 @@ rbinstream& rbinstream::operator <<(short s)
         _outDevice();
     return *this;
 }
-rbinstream& rbinstream::operator <<(word w)
+rbinstream& rbinstream::operator <<(uint16 w)
 {
     _pushBackBinaryOrder(w);
     if (!_doesBuffer)
@@ -1181,7 +1181,7 @@ rbinstream& rbinstream::operator <<(int i)
         _outDevice();
     return *this;
 }
-rbinstream& rbinstream::operator <<(dword d)
+rbinstream& rbinstream::operator <<(uint32 d)
 {
     _pushBackBinaryOrder(d);
     if (!_doesBuffer)
@@ -1202,14 +1202,14 @@ rbinstream& rbinstream::operator <<(unsigned long ul)
         _outDevice();
     return *this;
 }
-rbinstream& rbinstream::operator <<(const long long& l)
+rbinstream& rbinstream::operator <<(const int64& l)
 {
     _pushBackBinaryOrder(l);
     if (!_doesBuffer)
         _outDevice();
     return *this;
 }
-rbinstream& rbinstream::operator <<(const qword& q)
+rbinstream& rbinstream::operator <<(const uint64& q)
 {
     _pushBackBinaryOrder(q);
     if (!_doesBuffer)
@@ -1218,14 +1218,14 @@ rbinstream& rbinstream::operator <<(const qword& q)
 }
 rbinstream& rbinstream::operator <<(const double& d)
 {
-    _pushBackBinaryOrder( *reinterpret_cast<const qword*>(&d) );
+    _pushBackBinaryOrder( *reinterpret_cast<const uint64*>(&d) );
     if (!_doesBuffer)
         _outDevice();
     return *this;
 }
 rbinstream& rbinstream::operator <<(const void* p)
 {
-    _pushBackBinaryOrder<qword>( reinterpret_cast<qword>(p) );
+    _pushBackBinaryOrder<uint64>( reinterpret_cast<uint64>(p) );
     if (!_doesBuffer)
         _outDevice();
     return *this;

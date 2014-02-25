@@ -1,4 +1,4 @@
-/* rlasterr_posix.cpp - implements rfilename using the Windows API
+/* rlasterr_posix.cpp - implements rlasterr using POSIX
  *  This file should never be targeted directly; it's merely an implementation file referenced conditionally.
  */
 

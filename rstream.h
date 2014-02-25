@@ -38,7 +38,7 @@ namespace rtypes
         bool _popInput(char&);
         /* _peekInput( char& ) const
          * Gets the next character from the input buffer but does not modify the state of the buffer.
-         * _peekInput( char&,dword ) const
+         * _peekInput( char&,size_type ) const
          * Gets the next zero-based indexed character from the input buffer; does not modify the state of the buffer
          */
         bool _peekInput(char&) const;
@@ -102,7 +102,7 @@ namespace rtypes
         char peek(size_type) const; // peek zero-based indexed char from stream
         void put(char c);
         void place(const stream_base&); // place contents of specified stream's local output into this stream's local output buffer
-        void repeat(char,dword times); // insert 'times' number of the specified character
+        void repeat(char,uint32 times); // insert 'times' number of the specified character
 
         /* input iterators
          *  the input iterator is understood by the input device iter and the number of
@@ -199,9 +199,9 @@ namespace rtypes
         { return _delimStrActive; }
 
         // stream manipulation
-        word width() const
+        uint16 width() const
         { return _width; }
-        word width(word wide);
+        uint16 width(uint16 wide);
         byte precision() const
         { return _precision; }
         byte precision(byte ndigits);
@@ -219,13 +219,13 @@ namespace rtypes
         rstream& operator >>(char&);
         rstream& operator >>(byte&);
         rstream& operator >>(short&);
-        rstream& operator >>(word&);
+        rstream& operator >>(uint16&);
         rstream& operator >>(int&);
-        rstream& operator >>(dword&);
+        rstream& operator >>(uint32&);
         rstream& operator >>(long&);
         rstream& operator >>(unsigned long&);
-        rstream& operator >>(long long&);
-        rstream& operator >>(qword&);
+        rstream& operator >>(int64&);
+        rstream& operator >>(uint64&);
         rstream& operator >>(float&);
         rstream& operator >>(double&);
         rstream& operator >>(void*&);
@@ -236,13 +236,13 @@ namespace rtypes
         rstream& operator <<(char);
         rstream& operator <<(byte);
         rstream& operator <<(short);
-        rstream& operator <<(word);
+        rstream& operator <<(uint16);
         rstream& operator <<(int);
-        rstream& operator <<(dword);
+        rstream& operator <<(uint32);
         rstream& operator <<(long);
         rstream& operator <<(unsigned long);
-        rstream& operator <<(const long long&);
-        rstream& operator <<(const qword&);
+        rstream& operator <<(const int64&);
+        rstream& operator <<(const uint64&);
         rstream& operator <<(float);
         rstream& operator <<(const double&);
         rstream& operator <<(const void*);
@@ -256,7 +256,7 @@ namespace rtypes
         mutable string _delimStrActive, _delimStrLast;
 
         // manipulator fields
-        word _width;
+        uint16 _width;
         byte _precision;
         char _fill;
         numeric_representation _repFlag;
@@ -308,13 +308,13 @@ namespace rtypes
         rbinstream& operator >>(char&);
         rbinstream& operator >>(byte&);
         rbinstream& operator >>(short&);
-        rbinstream& operator >>(word&);
+        rbinstream& operator >>(uint16&);
         rbinstream& operator >>(int&);
-        rbinstream& operator >>(dword&);
+        rbinstream& operator >>(uint32&);
         rbinstream& operator >>(long&);
         rbinstream& operator >>(unsigned long&);
-        rbinstream& operator >>(long long&);
-        rbinstream& operator >>(qword&);
+        rbinstream& operator >>(int64&);
+        rbinstream& operator >>(uint64&);
         rbinstream& operator >>(double&);
         rbinstream& operator >>(void*&);
         rbinstream& operator >>(generic_string&);
@@ -324,13 +324,13 @@ namespace rtypes
         rbinstream& operator <<(char);
         rbinstream& operator <<(byte);
         rbinstream& operator <<(short);
-        rbinstream& operator <<(word);
+        rbinstream& operator <<(uint16);
         rbinstream& operator <<(int);
-        rbinstream& operator <<(dword);
+        rbinstream& operator <<(uint32);
         rbinstream& operator <<(long);
         rbinstream& operator <<(unsigned long);
-        rbinstream& operator <<(const long long&);
-        rbinstream& operator <<(const qword&);
+        rbinstream& operator <<(const int64&);
+        rbinstream& operator <<(const uint64&);
         rbinstream& operator <<(const double&);
         rbinstream& operator <<(const void*);
         rbinstream& operator <<(const char*);

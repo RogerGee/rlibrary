@@ -484,7 +484,7 @@ bool path::get_file_listing(simple_listing& dirs) const
     rlib_last_error::switch_set();
     return false;
 }
-bool path::set_directory_mode(dword modeBits)
+bool path::set_directory_mode(uint32 modeBits)
 {
     if (modeBits & file_attribute_hidden)
     {
@@ -509,7 +509,7 @@ bool path::set_directory_mode(dword modeBits)
         str top = get_top_name();
         if (top.length()>0 && top!="." && top!=".." && top[0]=='.')
         {
-            dword i = 0;
+            uint32 i = 0;
             while (top[i] == '.')
                 i++;
             top = get_full_name();
@@ -593,7 +593,7 @@ bool path::set_directory_mode(dword modeBits)
 void path::_checkParts()
 {
     // remove trailing path separators
-    dword sz;
+    uint32 sz;
     if (_parts[0].size() > 0)
     {
         sz = _parts[0].size()-1;
@@ -628,7 +628,7 @@ void path::_checkParts()
 {
     // obtain the current working directory
     str outDir;
-    dword i;
+    uint32 i;
     outDir.resize(256);
     while ( ::getcwd(&outDir[0],outDir.allocation_size()) == NULL )
     {
@@ -712,7 +712,7 @@ bool filename::has_contents() const
     // was not regular file
     throw does_not_exist_error();
 }
-qword filename::size() const
+uint64 filename::size() const
 {
     struct stat st;
     if ( ::stat(get_full_name().c_str(),&st) != 0 )
@@ -721,7 +721,7 @@ qword filename::size() const
         rlib_last_error::switch_throw();
     }
     if ((st.st_mode&S_IFMT) == S_IFDIR)
-        return qword(st.st_size);
+        return uint64(st.st_size);
     // was not regular file
     throw does_not_exist_error();
 }
@@ -744,7 +744,7 @@ bool filename::create() const
 }
 bool filename::copy(const char* pfname,bool overwrite) const
 {
-    static const dword BUF_SIZE = 65000;
+    static const uint32 BUF_SIZE = 65000;
     byte* buffer;
     int fsource, fnew;
     bool success;
@@ -826,7 +826,7 @@ bool filename::deletef()
     }
     return true;
 }
-bool filename::set_file_mode(dword bits)
+bool filename::set_file_mode(uint32 bits)
 {
     if (bits & file_attribute_hidden)
     {
@@ -842,7 +842,7 @@ bool filename::set_file_mode(dword bits)
         // "unhide" the hidden file
         if (_name.length()>0 && _name[0]=='.')
         {
-            dword i = 0;
+            uint32 i = 0;
             while (i<_name.length() && _name[i]=='.')
                 ++i;
             set_name(_name.c_str()+i);
@@ -907,13 +907,13 @@ bool filename::set_file_mode(dword bits)
 }
 void filename::_trunLeader(str& source)
 {
-    dword i = source.length()>0 ? source.length()-1 : 0;
+    uint32 i = source.length()>0 ? source.length()-1 : 0;
     while (i>0 && source[i]!=PATH_SEP)
         --i;
     if (source[i] == PATH_SEP)
     {
         _name.clear();
-        for (dword j = i+1;j<source.length();j++)
+        for (uint32 j = i+1;j<source.length();j++)
             _name.push_back( source[j] );
         if (i == 0) // this PATH_SEP is not a separator but the root directory
             ++i;

@@ -311,7 +311,7 @@ bool terminfo::operator [](term_boolean_cap) const
 {
     return false;
 }
-word terminfo::operator [](term_numeric_cap) const
+uint16 terminfo::operator [](term_numeric_cap) const
 {
     return 0;
 }
@@ -321,12 +321,12 @@ terminfo_sequence terminfo::operator [](term_string_cap) const
 }
 bool terminfo::_read(rbinstream& bstream)
 {
-    word magic;
-    word nameSize;
-    word bools;
-    word nums;
-    word offs;
-    word tblSize;
+    uint16 magic;
+    uint16 nameSize;
+    uint16 bools;
+    uint16 nums;
+    uint16 offs;
+    uint16 tblSize;
     // read the header
     bstream >> magic >> nameSize >> bools
             >> nums >> offs >> tblSize;
@@ -334,17 +334,17 @@ bool terminfo::_read(rbinstream& bstream)
     {
         bstream << binary_string_null_terminated;
         bstream >> _name;
-        for (word i = 0;i<bools;i++)
+        for (uint16 i = 0;i<bools;i++)
             bstream >> ++_booleanCaps;
         // make sure that the next position is aligned
-        // on a word boundery (even-byte boundry)
+        // on a 2-byte (word) boundery (even-byte boundry)
         if (bstream.get_input_iter() % 2 != 0)
             bstream.seek_input_iter(1);
-        for (word i = 0;i<nums;i++)
+        for (uint16 i = 0;i<nums;i++)
             bstream >> ++_numericCaps;
         // seek the iterator to the string table
         bstream.seek_input_iter(offs*2);
-        for (word i = 0;i<offs;i++)
+        for (uint16 i = 0;i<offs;i++)
             bstream >> ++_stringCaps;
         return true;
     }

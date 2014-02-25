@@ -137,7 +137,7 @@ str path::get_top_name() const
 {
     str r;
     const generic_string& s = _parts[0].length()==0 ? _parts[1] : _parts[0];
-    dword i = s.length()>0 ? s.length()-1 : 0;
+    uint32 i = s.length()>0 ? s.length()-1 : 0;
     while (i>0 && s[i]!=PATH_SEP) // advance iterator to next separator (right-to-left)
         --i;
     if (s[i] == PATH_SEP) // move iterator past sepatator
@@ -169,7 +169,7 @@ str path::get_relative_name(const path& p) const
 str path::get_parent_name() const
 {
     str abspath = get_full_name();
-    dword sz = abspath.size();
+    uint32 sz = abspath.size();
     while (sz > 0)
         if (abspath[--sz] == PATH_SEP)
             break;
@@ -207,14 +207,14 @@ void path::set_full_name(const generic_string& n)
 {
     // take the top component
     // and put it as the relative part
-    dword i = n.size()>0 ? n.size()-1 : 0;
+    uint32 i = n.size()>0 ? n.size()-1 : 0;
     while (i>0 && n[i]!=PATH_SEP)
         --i;
     _parts[0].clear();
     _parts[1].clear();
-    for (dword j = i;j<n.size();j++)
+    for (uint32 j = i;j<n.size();j++)
         _parts[0].push_back(n[j]);
-    for (dword j = 0;j<i;j++)
+    for (uint32 j = 0;j<i;j++)
         _parts[1].push_back(n[j]);
     _checkParts();
 }
@@ -226,7 +226,7 @@ void path::set_top_name(const char* pn)
 void path::set_top_name(const generic_string& n)
 {
     str& s = _parts[0].length()==0 ? _parts[1] : _parts[0];
-    dword sz = s.size()-1;
+    uint32 sz = s.size()-1;
     while (sz>0 && s[sz]!=PATH_SEP)
         --sz;
     if (s[sz] == PATH_SEP)
@@ -389,12 +389,12 @@ str filename::get_namex() const
     str n;
     if (_name.length() > 0)
     {
-        dword i = _name.length()-1;
+        uint32 i = _name.length()-1;
         while (i>0 && _name[i]!='.')
             --i;
         if (_name[i] == '.')
         {
-            for (dword j = 0;j<i;j++)
+            for (uint32 j = 0;j<i;j++)
                 n.push_back( _name[j] );
         }
         else
@@ -407,7 +407,7 @@ str filename::get_extension(bool includeLeadingDot) const
     str ext;
     if (_name.length() > 0)
     {
-        dword i = _name.length()-1;
+        uint32 i = _name.length()-1;
         while (i>0 && _name[i]!='.')
             --i;
         if (i>0 || _name[0]=='.')
@@ -459,7 +459,7 @@ void filename::set_name(const generic_string& name)
 void filename::set_name(const char* name,const char* extension)
 {
     // treat extension as a suffix
-    dword start = 0;
+    uint32 start = 0;
     _name = name;
     // move past any dots before the extension
     while (extension[start] && extension[start]=='.')
@@ -471,7 +471,7 @@ void filename::set_name(const char* name,const char* extension)
 void filename::set_name(const generic_string& name,const generic_string& extension)
 {
     // treat extension as a suffix
-    dword start = 0;
+    uint32 start = 0;
     _name = name;
     // move past any dots before the extension
     while (start<extension.length() && extension[start]=='.')
@@ -491,14 +491,14 @@ void filename::set_namex(const generic_string& name)
     // the extension is the last .suffix
     if (name.length() > 0)
     {
-        dword i = name.length()-1;
+        uint32 i = name.length()-1;
         while (i>0 && name[i]!='.')
             --i;
         if (name[i] == '.')
         {
             // set name excluding extension
             _name.clear();
-            for (dword j = 0;j<i;j++)
+            for (uint32 j = 0;j<i;j++)
                 _name.push_back( name[j] );
         }
         else // no extension was specified
@@ -516,7 +516,7 @@ void filename::set_extension(const generic_string& name)
 {
     // the extension in 'name' is the last
     // .suffix
-    dword insertPos;
+    uint32 insertPos;
     // find the beginning of the current extension
     insertPos = _name.length()>0 ? _name.length()-1 : 0;
     while (insertPos>0 && _name[insertPos]!='.')
@@ -529,7 +529,7 @@ void filename::set_extension(const generic_string& name)
     if (name.length() > 0)
     {
         // find the beginning of the specified extension
-        dword j = name.length()-1;
+        uint32 j = name.length()-1;
         while (j>0 && name[j]!='.')
             --j;
         if (name[j] == '.') // found extension

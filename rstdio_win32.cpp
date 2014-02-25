@@ -34,7 +34,7 @@ bool standard_device::clear_screen()
     }
     return false;
 }
-void standard_device::_openEvent(const char*,io_access_flag kind,io_resource** pinput,io_resource** poutput,void**,dword)
+void standard_device::_openEvent(const char*,io_access_flag kind,io_resource** pinput,io_resource** poutput,void**,uint32)
 {
     HANDLE hStdHandle;
     if (kind & read_access)
@@ -65,8 +65,8 @@ bool standard_stream::_inDevice() const
      * underlying device has a lot of
      * data.
      */
-    dword i;
-    dword cnt;
+    uint32 i;
+    uint32 cnt;
     char buffer[4096];
     // read in a buffer
     _device->read(buffer,4096);
@@ -75,7 +75,7 @@ bool standard_stream::_inDevice() const
     while (i < cnt)
     {
         const char* pbuf = buffer+i;
-        dword len = 0;
+        uint32 len = 0;
         while (i<cnt && pbuf[len]!='\r')
             ++len, ++i;
         _bufIn.push_range(pbuf,len);
@@ -91,7 +91,7 @@ void standard_stream::_outDevice()
      * devices. Therefore, all \n characters
      * are translated into the sequence \r\n.
      */
-    dword iter = 0;
+    uint32 iter = 0;
     const char* pbuffer = &_bufOut.peek();
     void (standard_stream::* pwrite)(const char*,size_type);
     if (_okind == out)
@@ -100,7 +100,7 @@ void standard_stream::_outDevice()
         pwrite = &standard_stream::write_error;
     while (true)
     {
-        dword length = 0;
+        uint32 length = 0;
         while (iter<_bufOut.size() && pbuffer[length] != '\n')
             ++length, ++iter;
         (_device->*pwrite)(pbuffer,length);
@@ -117,7 +117,7 @@ void standard_stream::_outDevice()
 bool standard_binary_stream::_inDevice() const
 {
     /* don't do anything fancy with the bytes... */
-    dword cnt;
+    uint32 cnt;
     char buffer[4096];
     // read in a buffer
     _device->read(buffer,4096);

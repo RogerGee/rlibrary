@@ -26,7 +26,7 @@ bool standard_device::clear_screen()
     }
     return false;
 }
-void standard_device::_openEvent(const char*,io_access_flag kind,io_resource** pinput,io_resource** poutput,void**,dword)
+void standard_device::_openEvent(const char*,io_access_flag kind,io_resource** pinput,io_resource** poutput,void**,uint32)
 {
     if (kind & read_access)
     {

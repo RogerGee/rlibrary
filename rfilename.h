@@ -25,8 +25,8 @@ namespace rtypes
         timestamp changeTime; // file change time
         timestamp lastAccessTime; // last read time
         timestamp lastModifyTime; // last write time
-        qword fileSize; // size of file in bytes
-        dword fileMode; // system-specific bit-field containing file attributes
+        uint64 fileSize; // size of file in bytes
+        uint32 fileMode; // system-specific bit-field containing file attributes
 
         file_entry_kind get_kind() const; // retrieves the type of filesystem entry based off 'fileMode' [sys]
     private:
@@ -97,7 +97,7 @@ namespace rtypes
         void set_relative_path(const path&); // sets the path relative to the specified directory
 
         file_entry get_entry_info() const; // retrieves filsytem entry-information for the directory [terr]
-        bool set_directory_mode(dword modeBits); // sets the file mode of the directory with a system-independent bitmask of 'file_attribute' [sys] [lerr]
+        bool set_directory_mode(uint32 modeBits); // sets the file mode of the directory with a system-independent bitmask of 'file_attribute' [sys] [lerr]
 
         void append_name(const char*); // append the specified name to the end of the top-level directory
         void append_name(const generic_string&);
@@ -135,7 +135,7 @@ namespace rtypes
         bool exists() const; // indicates whether or not the file name exists in the filesystem [sys] [terr]
         bool has_extension() const; // indicates whether or not the file name object contains an extension
         bool has_contents() const; // indicates whether or not an existing file name's length is greater than zero [sys] [terr]
-        qword size() const; // returns the size (in bytes) of an existing file [sys] [terr]
+        uint64 size() const; // returns the size (in bytes) of an existing file [sys] [terr]
 
         bool create() const; // create the file if it does not exist in a default mode; returns true if the file was created OR was already created [sys] [lerr]
         bool copy(const path& toDirectory,bool overwrite = false) const; // copy file referred by this filename into new file of same name in specified path [lerr]
@@ -170,7 +170,7 @@ namespace rtypes
         void set_path(const path&); // set just the path leading up to the file name
 
         file_entry get_entry_info() const; // gets a structure describing the file entry [terr]
-        bool set_file_mode(dword modeBits); // sets the mode for the file using a system-independent bitmask of 'file_attribute' [sys]
+        bool set_file_mode(uint32 modeBits); // sets the mode for the file using a system-independent bitmask of 'file_attribute' [sys]
     private:
         path _path;
         str _name;

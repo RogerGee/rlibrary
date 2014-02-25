@@ -24,7 +24,7 @@ void _rstream_endflush_manipulator::operation(rstream& stream) const
 const _rstream_endflush_manipulator rtypes::endline;
 
 // rtypes::setw
-setw::setw(word numericWidth)
+setw::setw(uint16 numericWidth)
     : nwidth(numericWidth)
 {
 }

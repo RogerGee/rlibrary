@@ -91,7 +91,7 @@ namespace rtypes
             bool is_capable(term_string_cap) const;
 
             bool operator [](term_boolean_cap) const;
-            word operator [](term_numeric_cap) const;
+            uint16 operator [](term_numeric_cap) const;
             terminfo_sequence operator [](term_string_cap) const;
 
             /* this name list contains different aliases
@@ -110,7 +110,7 @@ namespace rtypes
             str _name; // name string in format name1|name2
 
             dynamic_array<bool> _booleanCaps;
-            dynamic_array<word> _numericCaps;
+            dynamic_array<uint16> _numericCaps;
             dynamic_array<string> _stringCaps;
 
             bool _read(rbinstream&);

@@ -1,4 +1,4 @@
-/* rlasterr_win32.cpp - implements rfilename using the Windows API
+/* rlasterr_win32.cpp - implements rlasterr using the Windows API
  *  This file should never be targeted directly; it's merely an implementation file referenced conditionally.
  */
 

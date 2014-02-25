@@ -78,7 +78,7 @@ void file_entry::_load(const char* pname)
             set_timestamp_from_stime(lastModifyTime,&st);
             fileMode = info.dwFileAttributes;
             fileSize = info.nFileSizeLow;
-            fileSize |= qword(info.nFileSizeHigh) << 32;
+            fileSize |= uint64(info.nFileSizeHigh) << 32;
         }
         else
         {
@@ -441,7 +441,7 @@ bool path::get_file_listing(simple_listing& dirs) const
     rlib_last_error::switch_set();
     return false;
 }
-bool path::set_directory_mode(dword modeBits)
+bool path::set_directory_mode(uint32 modeBits)
 {
     str name = get_full_name();
     DWORD mode = ::GetFileAttributes( name.c_str() );
@@ -479,12 +479,12 @@ bool path::set_directory_mode(dword modeBits)
 void path::_checkParts()
 {
     // remove trailing path separators
-    dword sz;
+    uint32 sz;
     if (_parts[0].size() > 0)
     {
         bool b = _parts[0].length()>2 && is_drive_spec(_parts[0].c_str());
         sz = _parts[0].size()-1;
-        while (sz>dword(b?2:0) && _parts[0][sz]==PATH_SEP)
+        while (sz>uint32(b?2:0) && _parts[0][sz]==PATH_SEP)
             --sz;
         _parts[0].truncate(sz+1);
     }
@@ -492,7 +492,7 @@ void path::_checkParts()
     {
         bool b = _parts[1].length()>2 && is_drive_spec(_parts[1].c_str());
         sz = _parts[1].size()-1;
-        while (sz>dword(b?2:0) && _parts[1][sz]==PATH_SEP)
+        while (sz>uint32(b?2:0) && _parts[1][sz]==PATH_SEP)
             --sz;
         _parts[1].truncate(sz+1);
     }
@@ -504,9 +504,9 @@ void path::_checkParts()
         // if so, place take the drive spec. off of _parts[0]
         if (_parts[0][1]==':' && (_parts[0].length()<=2 || _parts[0][2]!=PATH_SEP)) // not an absolute path
         {
-            dword i = 0;
+            uint32 i = 0;
             str temp( _parts[0].size()-2 );
-            for (dword j = 2;j<_parts[0].size();i++,j++)
+            for (uint32 j = 2;j<_parts[0].size();i++,j++)
                 temp[i] = _parts[0][j];
             _parts[0] = temp;
             _parts[1] = _getWorkDir();
@@ -541,14 +541,14 @@ void path::_checkParts()
         // uses current drive syntax e.g. c:folder
         str temp = _getWorkDir();
         temp += PATH_SEP;
-        for (dword i = 2;i<_parts[1].length();i++)
+        for (uint32 i = 2;i<_parts[1].length();i++)
             temp.push_back(_parts[1][i]);
         _parts[1] = temp;
     }
 }
 /* static */ str path::_getWorkDir()
 {
-    dword len;
+    uint32 len;
     str curDir(MAX_PATH);
     len = ::GetCurrentDirectory(curDir.allocation_size(),&curDir[0]);
     if (len > curDir.allocation_size())
@@ -628,7 +628,7 @@ bool filename::has_contents() const
     rlib_last_error::switch_throw();
     return false; // return on all code paths (won't run)
 }
-qword filename::size() const
+uint64 filename::size() const
 {
     // have to open file, get its size, then close it
     HANDLE hFile;
@@ -661,7 +661,7 @@ bool filename::create() const
 }
 bool filename::copy(const char* pfname,bool overwrite) const
 {
-    static const dword BUF_SIZE = 65000;
+    static const uint32 BUF_SIZE = 65000;
     byte* buffer;
     HANDLE hSource, hDest;
     bool success;
@@ -733,7 +733,7 @@ bool filename::deletef()
 {
     return ::DeleteFile( get_full_name().c_str() ) != 0;
 }
-bool filename::set_file_mode(dword bits)
+bool filename::set_file_mode(uint32 bits)
 {
     str name = get_full_name();
     DWORD mode = ::GetFileAttributes( name.c_str() );
@@ -765,13 +765,13 @@ bool filename::set_file_mode(dword bits)
 }
 void filename::_trunLeader(str& source)
 {
-    dword i = source.length()>0 ? source.length()-1 : 0;
+    uint32 i = source.length()>0 ? source.length()-1 : 0;
     while (i>0 && source[i]!=PATH_SEP)
         --i;
     if (source[i] == PATH_SEP)
     {
         _name.clear();
-        for (dword j = i;j<source.length();j++)
+        for (uint32 j = i;j<source.length();j++)
             _name.push_back( source[j] );
         if ((i==2 && is_drive_spec( source.c_str() )) || i==0)
             ++i; // source[i] is not a PATH_SEP but the root directory

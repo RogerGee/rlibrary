@@ -77,7 +77,7 @@ bool file::resize(offset_type size)
         return ::ftruncate(iores->interpret_as<int>(),size) == 0;
     throw object_not_initialized_error();
 }
-void file::_openEvent(const char* deviceID,io_access_flag accessKind,io_resource** pinput,io_resource** poutput,void** arguments,dword count)
+void file::_openEvent(const char* deviceID,io_access_flag accessKind,io_resource** pinput,io_resource** poutput,void** arguments,uint32 count)
 {
     bool doesAppend = false;
     int flags = 0;

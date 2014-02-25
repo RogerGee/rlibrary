@@ -44,7 +44,7 @@ void io_device::_readBuffer(void* buffer,size_type bytesToRead) const
         else
         {
             _lastOp = success_read;
-            _byteCount = dword(bytesRead);
+            _byteCount = uint32(bytesRead);
         }
     }
     else
@@ -72,7 +72,7 @@ void io_device::_readBuffer(const io_resource* context,void* buffer,size_type by
         else
         {
             _lastOp = success_read;
-            _byteCount = dword(bytesRead);
+            _byteCount = uint32(bytesRead);
         }
     }
     else
@@ -100,7 +100,7 @@ void io_device::_writeBuffer(const void* buffer,size_type length)
         else
         {
             _lastOp = success_write;
-            _byteCount = dword(bytesWrote);
+            _byteCount = uint32(bytesWrote);
         }
     }
     else
@@ -128,7 +128,7 @@ void io_device::_writeBuffer(const io_resource* context,const void* buffer,size_
         else
         {
             _lastOp = success_write;
-            _byteCount = dword(bytesWrote);
+            _byteCount = uint32(bytesWrote);
         }
     }
     else

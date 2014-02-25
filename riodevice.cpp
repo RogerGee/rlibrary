@@ -323,7 +323,7 @@ io_resource* io_device::_getValidContext()
         return _output;
     return NULL;
 }
-bool io_device::_openWithArgs(const char* deviceID,void** arguments,dword argumentCount)
+bool io_device::_openWithArgs(const char* deviceID,void** arguments,uint32 argumentCount)
 {
     if (_input!=NULL || _output!=NULL)
         return false; // must close both first
@@ -335,7 +335,7 @@ bool io_device::_openWithArgs(const char* deviceID,void** arguments,dword argume
     }
     return false;
 }
-bool io_device::_openInputWithArgs(const char* deviceID,void** arguments,dword argumentCount)
+bool io_device::_openInputWithArgs(const char* deviceID,void** arguments,uint32 argumentCount)
 {
     if (_input != NULL)
         return false; // must close input first
@@ -347,7 +347,7 @@ bool io_device::_openInputWithArgs(const char* deviceID,void** arguments,dword a
     }
     return false;
 }
-bool io_device::_openOutputWithArgs(const char* deviceID,void** arguments,dword argumentCount)
+bool io_device::_openOutputWithArgs(const char* deviceID,void** arguments,uint32 argumentCount)
 {
     if (_output != NULL)
         return false; // must close output first
