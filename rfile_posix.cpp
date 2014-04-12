@@ -151,17 +151,21 @@ void file::_readAll(generic_string& buffer) const
 bool file_stream::_inDevice() const
 {
     char buffer[4096];
+    _device->set_file_pointer(_ideviceIter);
     _device->read(buffer,4096);
     if (_device->get_last_operation_status() == success_read)
     {
         _bufIn.push_range(buffer,_device->get_last_byte_count());
+        _ideviceIter += _device->get_last_byte_count();
         return true;
     }
     return false;
 }
 void file_stream::_outDevice()
 {
+    _device->set_file_pointer(_odeviceIter);
     _device->write(&_bufOut.peek(),_bufOut.size());
+    _odeviceIter += _bufOut.size();
     _bufOut.clear();
 }
 
@@ -169,16 +173,20 @@ void file_stream::_outDevice()
 bool file_binary_stream::_inDevice() const
 {
     char buffer[4096];
+    _device->set_file_pointer(_ideviceIter);
     _device->read(buffer,4096);
     if (_device->get_last_operation_status() == success_read)
     {
         _bufIn.push_range(buffer,_device->get_last_byte_count());
+        _ideviceIter += _device->get_last_byte_count();
         return true;
     }
     return false;
 }
 void file_binary_stream::_outDevice()
 {
+    _device->set_file_pointer(_odeviceIter);
     _device->write(&_bufOut.peek(),_bufOut.size());
+    _odeviceIter += _bufOut.size();
     _bufOut.clear();
 }

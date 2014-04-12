@@ -113,13 +113,13 @@ void stream_base::repeat(char c,uint32 times)
 }
 void stream_base::set_input_iter(size_type iter)
 {
-    int amount = int(iter) - int(get_input_iter());
+    int64 amount = int64(iter) - int64(get_input_iter());
     if (amount < 0)
     {
         _flushInputBuffer(); // flush because data is now invalidated
         _ideviceIter = iter;
     }
-    else if (amount <= int(_bufIn.size()))
+    else if (amount <= int64(_bufIn.size()))
         _bufIn.pop_range(amount);
     else
     {
@@ -130,13 +130,13 @@ void stream_base::set_input_iter(size_type iter)
 }
 void stream_base::set_output_iter(size_type iter)
 {
-    int amount = int(iter) - int(get_output_iter());
+    int64 amount = int64(iter) - int64(get_output_iter());
     if (amount < 0)
     {
         flush_output(); // any data assumed to have been intended for previous offset destination
         _odeviceIter = iter;
     }
-    else if (amount <= int(_bufOut.size()))
+    else if (amount <= int64(_bufOut.size()))
         _bufOut.pop_range(amount);
     else
     {

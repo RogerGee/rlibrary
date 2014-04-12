@@ -4,7 +4,6 @@
 #include "rstdio.h"
 #include "rstringstream.h"
 #include "rfilename.h"
-#include "rstdio.h"
 #include "rfile.h"
 #include <unistd.h>
 #include <stdlib.h>
@@ -328,24 +327,36 @@ bool terminfo::_read(rbinstream& bstream)
     uint16 offs;
     uint16 tblSize;
     // read the header
-    bstream >> magic >> nameSize >> bools
-            >> nums >> offs >> tblSize;
+    bstream >> magic >> nameSize >> bools >> nums >> offs >> tblSize;
     if (magic == 0432)
     {
         bstream << binary_string_null_terminated;
         bstream >> _name;
+        // read boolean capabilities
         for (uint16 i = 0;i<bools;i++)
             bstream >> ++_booleanCaps;
         // make sure that the next position is aligned
         // on a 2-byte (word) boundery (even-byte boundry)
         if (bstream.get_input_iter() % 2 != 0)
             bstream.seek_input_iter(1);
+        // read numeric capabilities
         for (uint16 i = 0;i<nums;i++)
             bstream >> ++_numericCaps;
-        // seek the iterator to the string table
-        bstream.seek_input_iter(offs*2);
+        // read string offset values
+        uint16* offsets = new uint16[offs];
         for (uint16 i = 0;i<offs;i++)
-            bstream >> ++_stringCaps;
+            bstream >> offsets[i];
+        // read string capabilities
+        for (uint16 i = 0;i<offs;i++)
+        {
+            string& elem = ++_stringCaps;
+            if (offsets[i] != 0xffff)
+            {
+                stdConsole << '[' << offsets[i] << "]\n";
+                bstream >> elem;
+            }
+        }
+        delete[] offsets;
         return true;
     }
     return false;
