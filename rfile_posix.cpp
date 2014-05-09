@@ -141,11 +141,6 @@ void file::_openEvent(const char* deviceID,io_access_flag accessKind,io_resource
         }
     }
 }
-void file::_readAll(generic_string& buffer) const
-{
-    buffer.resize( get_file_size() );
-    read(buffer);
-}
 
 // rtypes::file_stream
 bool file_stream::_inDevice() const

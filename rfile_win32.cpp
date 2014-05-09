@@ -3,6 +3,27 @@
 using namespace rtypes;
 
 // rtypes::file
+offset_type file::get_file_pointer() const
+{
+}
+offset_type file::get_file_size() const
+{
+}
+bool file::eof() const
+{
+}
+bool file::set_file_pointer(offset_type pos)
+{
+}
+bool file::seek_file_pointer(offset_seek_type posDif)
+{
+}
+bool file::file_truncate()
+{
+}
+bool file::resize(offset_type size)
+{
+}
 void file::_openEvent(const char* deviceID,io_access_flag accessKind,io_resource** pinput,io_resource** poutput,void** arguments,uint32 count)
 {
     bool doesAppend;
@@ -77,9 +98,6 @@ void file::_openEvent(const char* deviceID,io_access_flag accessKind,io_resource
             (*poutput)->assign(hFile);
         }
     }
-}
-void file::_readAll(generic_string& buffer) const
-{
 }
 
 // rtypes::file_stream

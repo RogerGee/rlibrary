@@ -45,6 +45,11 @@ bool file::open_output(const char* fileName,file_open_mode mode)
     args[0] = &mode;
     return _openOutputWithArgs(fileName,args,1);
 }
+void file::_readAll(generic_string& buffer) const
+{
+    buffer.resize( get_file_size() );
+    read(buffer);
+}
 void file::_closeEvent(io_access_flag)
 {
 }
