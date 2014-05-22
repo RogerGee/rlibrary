@@ -183,12 +183,10 @@ void standard_stream_device::_closeDevice()
 // rtypes::standard_stream
 standard_stream::standard_stream()
 {
-    _doesBuffer = true; // standard text streams buffer by default
 }
 standard_stream::standard_stream(standard_device& device)
     : standard_stream_device(device)
 {
-    _doesBuffer = true; // standard text streams buffer by default
 }
 standard_stream::~standard_stream()
 {
@@ -201,12 +199,10 @@ standard_stream::~standard_stream()
 // rtypes::standard_binary_stream
 standard_binary_stream::standard_binary_stream()
 {
-    _doesBuffer = true; // standard text streams buffer by default
 }
 standard_binary_stream::standard_binary_stream(standard_device& device)
     : standard_stream_device(device)
 {
-    _doesBuffer = true; // standard text streams buffer by default
 }
 standard_binary_stream::~standard_binary_stream()
 {

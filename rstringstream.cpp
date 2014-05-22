@@ -3,16 +3,18 @@
 using namespace rtypes;
 
 rstringstream::rstringstream()
+    : rstream(false)
 {
     // allow default construction
 }
 rstringstream::rstringstream(const char* initialValue)
+    : rstream(false)
 {
     // construct with default value (enforced by the behavior of device ID open)
     open(initialValue);
 }
 rstringstream::rstringstream(generic_string& strDevice)
-    : stream_device<str,generic_string>(strDevice)
+    : rstream(false), stream_device<str,generic_string>(strDevice)
 {
 
 }
@@ -59,16 +61,12 @@ void rstringstream::_outDevice()
 }
 
 const_rstringstream::const_rstringstream()
+    : rstream(false)
 {
     // allow for default construction
 }
-const_rstringstream::const_rstringstream(const char* initialValue)
-{
-    // construct with default value (enforced by the behavior of device ID open)
-    open(initialValue);
-}
 const_rstringstream::const_rstringstream(const generic_string& strDevice)
-    : const_stream_device<str,generic_string>(strDevice)
+    : rstream(false), const_stream_device<generic_string>(strDevice)
 {
 
 }
@@ -94,21 +92,23 @@ bool const_rstringstream::_inDevice() const
 }
 
 rbinstringstream::rbinstringstream()
+    : rbinstream(false)
 {
     // allow default construction
 }
 rbinstringstream::rbinstringstream(const char* initialValue)
+    : rbinstream(false)
 {
     // construct with default value (enforced by the behavior of device ID open)
     open(initialValue);
 }
 rbinstringstream::rbinstringstream(generic_string& strDevice)
-    : stream_device<str,generic_string>(strDevice)
+    : rbinstream(false), stream_device<str,generic_string>(strDevice)
 {
 
 }
 rbinstringstream::rbinstringstream(endianness endianFlag)
-    : rbinstream(endianFlag)
+    : rbinstream(endianFlag,false)
 {
 }
 rbinstringstream::~rbinstringstream()
@@ -154,21 +154,16 @@ void rbinstringstream::_outDevice()
 }
 
 const_rbinstringstream::const_rbinstringstream()
+    : rbinstream(false)
 {
     // allow for default construction
 }
-const_rbinstringstream::const_rbinstringstream(const char* initialValue)
-{
-    // construct with default value (enforced by the behavior of device ID open)
-    open(initialValue);
-}
 const_rbinstringstream::const_rbinstringstream(const generic_string& strDevice)
-    : const_stream_device<str,generic_string>(strDevice)
+    : rbinstream(false), const_stream_device<generic_string>(strDevice)
 {
-
 }
 const_rbinstringstream::const_rbinstringstream(endianness endianFlag)
-    : rbinstream(endianFlag)
+    : rbinstream(endianFlag,false)
 {
 }
 bool const_rbinstringstream::_openDevice(generic_string* device,const char* deviceID)

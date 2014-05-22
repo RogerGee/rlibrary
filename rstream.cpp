@@ -71,7 +71,12 @@ void stream_buffer::_pushBackOutputString(const generic_string& s)
 stream_base::stream_base()
 {
     _lastSuccess = true; // "no operation" is considered a successful state; by default the stream's success state is good
-    _doesBuffer = false;
+    _doesBuffer = true; // let the stream by default buffer output until a flush operation is executed
+}
+stream_base::stream_base(bool doesBuffer)
+{
+    _lastSuccess = true;
+    _doesBuffer = doesBuffer;
 }
 char stream_base::get()
 {
@@ -158,12 +163,14 @@ bool stream_base::has_input() const
 
 rstream::rstream()
 {
-    // initialize default manipulators
-    _width = 0;
-    _precision = 0;
-    _fill = ' ';
-    _repFlag = decimal;
-    _delimitWhitespace = true;
+    // call initializer member function
+    _init();
+}
+rstream::rstream(bool doesBuffer)
+    : stream_base(doesBuffer)
+{
+    // call initializer member function
+    _init();
 }
 void rstream::add_extra_delimiter(char c)
 {
@@ -235,14 +242,14 @@ void rstream::getline(generic_string& var)
     char input;
     while (true)
     {
-        if (!_popInput(input))
+        if ( !_popInput(input) )
         {
-            _lastSuccess = false;
+            set_input_success(var.length() > 0);
             return;
         }
-        else if (input=='\n')
+        else if (input == '\n')
         {
-            _lastSuccess = true;
+            set_input_success(true);
             return;
         }
         //else if (input=='\r') // newline encoding is not supposed to use this with stream buffer data
@@ -254,7 +261,7 @@ void rstream::putline(const generic_string& text)
 {
     _pushBackOutputString(text);
     _pushBackOutput('\n'); //add a newline
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
 }
 rstream& rstream::operator >>(bool& var)
@@ -282,13 +289,13 @@ rstream& rstream::operator >>(bool& var)
     for (size_type i = 0;i<s.length();i++)
         if (s[i]>='A' && s[i]<='Z')
             s[i] -= 'A', s[i] += 'a';
-    _lastSuccess = true;
+    set_input_success(true);
     if (s=="true")
         var = true;
     else if (s=="false")
         var = false;
     else
-        _lastSuccess = false;
+        set_input_success(false);
     return *this;   
 }
 rstream& rstream::operator >>(char& var)
@@ -298,12 +305,12 @@ rstream& rstream::operator >>(char& var)
     {
         if ( !_popInput(input) )
         {
-            _lastSuccess = false;
+            set_input_success(false);
             return *this; // no available input
         }
     } while (_isWhitespace(input));
     var = input;
-    _lastSuccess = true;
+    set_input_success(true);
     return *this;
 }
 rstream& rstream::operator >>(byte& var)
@@ -313,18 +320,19 @@ rstream& rstream::operator >>(byte& var)
     {
         if ( !_popInput(input) )
         {
-            _lastSuccess = false;
+            set_input_success(false);
             return *this; // no available input
         }
     } while (_isWhitespace(input));
     var = input;
-    _lastSuccess = true;
+    set_input_success(true);
     return *this;
 }
 rstream& rstream::operator >>(short& var)
 {
     str s;
     char input;
+    bool success;
     while (true)
     {
         if (!_popInput(input))
@@ -340,16 +348,18 @@ rstream& rstream::operator >>(short& var)
     }
     if (!s.size())
     {
-        _lastSuccess = false;
+        set_input_success(false);
         return *this;
     }
-    var = _fromString<short> (s,_lastSuccess);
+    var = _fromString<short> (s,success);
+    set_input_success(success);
     return *this;
 }
 rstream& rstream::operator >>(uint16& var)
 {
     str s;
     char input;
+    bool success;
     while (true)
     {
         if (!_popInput(input))
@@ -365,16 +375,18 @@ rstream& rstream::operator >>(uint16& var)
     }
     if (!s.size())
     {
-        _lastSuccess = false;
+        set_input_success(false);
         return *this;
     }
-    var = _fromString<uint16> (s,_lastSuccess);
+    var = _fromString<uint16> (s,success);
+    set_input_success(success);
     return *this;
 }
 rstream& rstream::operator >>(int& var)
 {
     str s;
     char input;
+    bool success;
     while (true)
     {
         if (!_popInput(input))
@@ -390,16 +402,18 @@ rstream& rstream::operator >>(int& var)
     }
     if (!s.size())
     {
-        _lastSuccess = false;
+        set_input_success(false);
         return *this;
     }
-    var = _fromString<int> (s,_lastSuccess);
+    var = _fromString<int> (s,success);
+    set_input_success(success);
     return *this;
 }
 rstream& rstream::operator >>(uint32& var)
 {
     str s;
     char input;
+    bool success;
     while (true)
     {
         if (!_popInput(input))
@@ -415,16 +429,18 @@ rstream& rstream::operator >>(uint32& var)
     }
     if (!s.size())
     {
-        _lastSuccess = false;
+        set_input_success(false);
         return *this;
     }
-    var = _fromString<uint32> (s,_lastSuccess);
+    var = _fromString<uint32> (s,success);
+    set_input_success(success);
     return *this;
 }
 rstream& rstream::operator >>(long& var)
 {
     str s;
     char input;
+    bool success;
     while (true)
     {
         if (!_popInput(input))
@@ -440,16 +456,18 @@ rstream& rstream::operator >>(long& var)
     }
     if (!s.size())
     {
-        _lastSuccess = false;
+        set_input_success(false);
         return *this;
     }
-    var = _fromString<long> (s,_lastSuccess);
+    var = _fromString<long> (s,success);
+    set_input_success(success);
     return *this;
 }
 rstream& rstream::operator >>(unsigned long& var)
 {
     str s;
     char input;
+    bool success;
     while (true)
     {
         if (!_popInput(input))
@@ -465,16 +483,18 @@ rstream& rstream::operator >>(unsigned long& var)
     }
     if (!s.size())
     {
-        _lastSuccess = false;
+        set_input_success(false);
         return *this;
     }
-    var = _fromString<unsigned long> (s,_lastSuccess);
+    var = _fromString<unsigned long> (s,success);
+    set_input_success(success);
     return *this;
 }
 rstream& rstream::operator >>(int64& var)
 {
     str s;
     char input;
+    bool success;
     while (true)
     {
         if (!_popInput(input))
@@ -490,16 +510,18 @@ rstream& rstream::operator >>(int64& var)
     }
     if (!s.size())
     {
-        _lastSuccess = false;
+        set_input_success(false);
         return *this;
     }
-    var = _fromString<int64> (s,_lastSuccess);
+    var = _fromString<int64> (s,success);
+    set_input_success(success);
     return *this;
 }
 rstream& rstream::operator >>(uint64& var)
 {
     str s;
     char input;
+    bool success;
     while (true)
     {
         if (!_popInput(input))
@@ -515,28 +537,30 @@ rstream& rstream::operator >>(uint64& var)
     }
     if (!s.size())
     {
-        _lastSuccess = false;
+        set_input_success(false);
         return *this;
     }
-    var = _fromString<uint64> (s,_lastSuccess);
+    var = _fromString<uint64> (s,success);
+    set_input_success(success);
     return *this;
 }
 rstream& rstream::operator >>(float&)
 {
     /* unimplemented */
-    _lastSuccess = false;
+    set_input_success(false);
     return *this;
 }
 rstream& rstream::operator >>(double&)
 {
     // unimplemented
-    _lastSuccess = false;
+    set_input_success(false);
     return *this;
 }
 rstream& rstream::operator >>(void*& var)
 {
     str s;
     char input;
+    bool success;
     while (true)
     {
         if (!_popInput(input))
@@ -552,10 +576,11 @@ rstream& rstream::operator >>(void*& var)
     }
     if (!s.size())
     {
-        _lastSuccess = false;
+        set_input_success(false);
         return *this;
     }
-    var = reinterpret_cast<void*> (_fromString<uint32> (s,_lastSuccess));
+    var = reinterpret_cast<void*> (_fromString<uint32> (s,success));
+    set_input_success(success);
     return *this;
 }
 rstream& rstream::operator >>(generic_string& var)
@@ -575,83 +600,83 @@ rstream& rstream::operator >>(generic_string& var)
         }
         var.push_back(input);
     }
-    _lastSuccess = var.size()>0; // success if any characters were read
+    set_input_success(var.size() > 0); // success if any characters were read
     return *this;
 }
 rstream& rstream::operator <<(bool b)
 {
     _pushBackOutputString(b ? "true" : "false");
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rstream& rstream::operator <<(char c)
 {
     _pushBackOutput(c);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rstream& rstream::operator <<(byte b)
 {
     _pushBackOutput(b);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rstream& rstream::operator <<(short s)
 {
     _pushBackNumeric(s,s<0);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rstream& rstream::operator <<(uint16 w)
 {
     _pushBackNumeric(w,false);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rstream& rstream::operator <<(int i)
 {
     _pushBackNumeric(i,i<0);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rstream& rstream::operator <<(uint32 d)
 {
     _pushBackNumeric(d,false);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rstream& rstream::operator <<(long l)
 {
     _pushBackNumeric(l,l<0);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rstream& rstream::operator <<(unsigned long ul)
 {
     _pushBackNumeric(ul,false);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rstream& rstream::operator <<(const int64& l)
 {
     _pushBackNumeric(l,l<0);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rstream& rstream::operator <<(const uint64& q)
 {
     _pushBackNumeric(q,false);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
@@ -740,6 +765,8 @@ rstream& rstream::operator <<(const double& d)
         }
     }
     _pushBackOutputString(rep);
+    if ( !does_buffer_output() )
+        _outDevice();
     return *this;
 }
 rstream& rstream::operator <<(const void* p)
@@ -748,21 +775,21 @@ rstream& rstream::operator <<(const void* p)
     _repFlag = hexadecimal;
     _pushBackNumeric<uint64>(reinterpret_cast<uint64>(p),false,"0x");
     _repFlag = nFlag;
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rstream& rstream::operator <<(const char* cs)
 {
     _pushBackOutputString(cs);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rstream& rstream::operator <<(const generic_string& s)
 {
     _pushBackOutputString(s);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
@@ -775,6 +802,16 @@ rstream& rstream::operator <<(const rstream_manipulator& manipulator)
 {
     manipulator.op(*this);
     return *this;
+}
+void rstream::_init()
+{
+    // Initialize the rstream object:
+    // initialize default manipulators
+    _width = 0;
+    _precision = 0;
+    _fill = ' ';
+    _repFlag = decimal;
+    _delimitWhitespace = true;
 }
 bool rstream::_isWhitespace(char c)
 {
@@ -931,185 +968,218 @@ rbinstream::rbinstream(endianness e)
     _endianFlag = e;
     _stringInputFormat = binary_string_capacity;
 }
-
+rbinstream::rbinstream(bool doesBuffer)
+    : stream_base(doesBuffer)
+{
+    _endianFlag = little;
+    _stringInputFormat = binary_string_capacity;
+}
+rbinstream::rbinstream(endianness e,bool doesBuffer)
+    : stream_base(doesBuffer)
+{
+    _endianFlag = e;
+    _stringInputFormat = binary_string_capacity;
+}
 rbinstream& rbinstream::operator >>(bool& var)
 {
     // non-zero is true; zero is false
     char in;
-    _lastSuccess = _popInput(in);
-    if (_lastSuccess)
+    bool success;
+    success = _popInput(in);
+    if (success)
         var = in!=0;
+    set_input_success(success);
     return *this;
 }
 rbinstream& rbinstream::operator >>(char& var)
 {
-    _lastSuccess = _popInput(var);
+    set_input_success( _popInput(var) );
     return *this;
 }
 rbinstream& rbinstream::operator >>(byte& var)
 {
-    _lastSuccess = _popInput((char&) var);
+    set_input_success( _popInput((char&) var) );
     return *this;
 }
 rbinstream& rbinstream::operator >>(short& var)
 {
+    bool success;
     str data(sizeof(short));
     // load data
     for (size_type i = 0;i<sizeof(short);i++)
     {
         if (!_popInput(data[i]))
         {
-            _lastSuccess = false;
+            set_input_success(false);
             return *this;
         }
     }
     // calc. value
-    var = _fromString<short>(data,_lastSuccess);
+    var = _fromString<short>(data,success);
+    set_input_success(success);
     return *this;
 }
 rbinstream& rbinstream::operator >>(uint16& var)
 {
+    bool success;
     str data(sizeof(uint16));
     // load data
     for (size_type i = 0;i<sizeof(uint16);i++)
     {
         if (!_popInput(data[i]))
         {
-            _lastSuccess = false;
+            set_input_success(false);
             return *this;
         }
     }
     // calc. value
-    var = _fromString<uint16>(data,_lastSuccess);
+    var = _fromString<uint16>(data,success);
+    set_input_success(success);
     return *this;
 }
 rbinstream& rbinstream::operator >>(int& var)
 {
+    bool success;
     str data(sizeof(int));
     // load data
     for (size_type i = 0;i<sizeof(int);i++)
     {
         if (!_popInput(data[i]))
         {
-            _lastSuccess = false;
+            set_input_success(false);
             return *this;
         }
     }
     // calc. value
-    var = _fromString<int>(data,_lastSuccess);
+    var = _fromString<int>(data,success);
+    set_input_success(success);
     return *this;
 }
 rbinstream& rbinstream::operator >>(uint32& var)
 {
+    bool success;
     str data(sizeof(uint32));
     // load data
     for (size_type i = 0;i<sizeof(uint32);i++)
     {
         if (!_popInput(data[i]))
         {
-            _lastSuccess = false;
+            set_input_success(false);
             return *this;
         }
     }
     // calc. value
-    var = _fromString<uint32>(data,_lastSuccess);
+    var = _fromString<uint32>(data,success);
+    set_input_success(success);
     return *this;
 }
 rbinstream& rbinstream::operator >>(long& var)
 {
+    bool success;
     str data(sizeof(long));
     // load data
     for (size_type i = 0;i<sizeof(long);i++)
     {
         if (!_popInput(data[i]))
         {
-            _lastSuccess = false;
+            set_input_success(false);
             return *this;
         }
     }
     // calc. value
-    var = _fromString<long>(data,_lastSuccess);
+    var = _fromString<long>(data,success);
+    set_input_success(success);
     return *this;
 }
 rbinstream& rbinstream::operator >>(unsigned long& var)
 {
+    bool success;
     str data(sizeof(unsigned long));
     // load data
     for (size_type i = 0;i<sizeof(unsigned long);i++)
     {
         if (!_popInput(data[i]))
         {
-            _lastSuccess = false;
+            set_input_success(false);
             return *this;
         }
     }
     // calc. value
-    var = _fromString<unsigned long>(data,_lastSuccess);
+    var = _fromString<unsigned long>(data,success);
+    set_input_success(success);
     return *this;
 }
 rbinstream& rbinstream::operator >>(int64& var)
 {
+    bool success;
     str data(sizeof(int64));
     // load data
     for (size_type i = 0;i<sizeof(int64);i++)
     {
         if (!_popInput(data[i]))
         {
-            _lastSuccess = false;
+            set_input_success(false);
             return *this;
         }
     }
     // calc. value
-    var = _fromString<int64>(data,_lastSuccess);
+    var = _fromString<int64>(data,success);
+    set_input_success(success);
     return *this;
 }
 rbinstream& rbinstream::operator >>(uint64& var)
 {
+    bool success;
     str data(sizeof(uint64));
     // load data
     for (size_type i = 0;i<sizeof(uint64);i++)
     {
         if (!_popInput(data[i]))
         {
-            _lastSuccess = false;
+            set_input_success(false);
             return *this;
         }
     }
     // calc. value
-    var = _fromString<uint64>(data,_lastSuccess);
+    var = _fromString<uint64>(data,success);
+    set_input_success(success);
     return *this;
 }
 rbinstream& rbinstream::operator >>(double& var)
 {
+    bool success;
     str data( sizeof(double) );
     // load data
     for (size_type i = 0;i<sizeof(double);i++)
     {
         if ( !_popInput(data[i]) )
         {
-            _lastSuccess = false;
+            set_input_success(false);
             return *this;
         }
     }
     // calc. value
-    uint64 rep = _fromString<uint64>(data,_lastSuccess);
+    uint64 rep = _fromString<uint64>(data,success);
     var = *reinterpret_cast<double*> (&rep);
+    set_input_success(success);
     return *this;
 }
 rbinstream& rbinstream::operator >>(void*& var)
 {
+    bool success;
     str data(sizeof(void*));
     // load data
     for (size_type i = 0;i<sizeof(void*);i++)
     {
         if (!_popInput(data[i]))
         {
-            _lastSuccess = false;
+            set_input_success(false);
             return *this;
         }
     }
     // calc. value
-    var = reinterpret_cast<void*> (_fromString<uint32>(data,_lastSuccess));
+    var = reinterpret_cast<void*> (_fromString<uint32>(data,success));
+    set_input_success(success);
     return *this;
 }
 rbinstream& rbinstream::operator >>(generic_string& var)
@@ -1122,111 +1192,111 @@ rbinstream& rbinstream::operator >>(generic_string& var)
         {
             if (!_popInput(var[i]))
             {
-                _lastSuccess = false;
+                set_input_success(false);
                 var.resize(i); // let the string be representative of what was read
                 return *this;
             }
         }
         var.resize(i);
-        _lastSuccess = var.size() == var.capacity();
+        set_input_success(var.size() == var.capacity());
     }
     else if (_stringInputFormat == binary_string_null_terminated)
     {
         char c = -1;
         while (_popInput(c) && c!=0)
             var.push_back(c);
-        _lastSuccess = c==0;
+        set_input_success( c==0 );
     }
     return *this;
 }
 rbinstream& rbinstream::operator <<(bool b)
 {
     _pushBackOutput(b ? 1 : 0);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rbinstream& rbinstream::operator <<(char c)
 {
     _pushBackOutput(c);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rbinstream& rbinstream::operator <<(byte b)
 {
     _pushBackOutput(b);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rbinstream& rbinstream::operator <<(short s)
 {
     _pushBackBinaryOrder(s);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rbinstream& rbinstream::operator <<(uint16 w)
 {
     _pushBackBinaryOrder(w);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rbinstream& rbinstream::operator <<(int i)
 {
     _pushBackBinaryOrder(i);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rbinstream& rbinstream::operator <<(uint32 d)
 {
     _pushBackBinaryOrder(d);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rbinstream& rbinstream::operator <<(long l)
 {
     _pushBackBinaryOrder(l);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rbinstream& rbinstream::operator <<(unsigned long ul)
 {
     _pushBackBinaryOrder(ul);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rbinstream& rbinstream::operator <<(const int64& l)
 {
     _pushBackBinaryOrder(l);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rbinstream& rbinstream::operator <<(const uint64& q)
 {
     _pushBackBinaryOrder(q);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rbinstream& rbinstream::operator <<(const double& d)
 {
     _pushBackBinaryOrder( *reinterpret_cast<const uint64*>(&d) );
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rbinstream& rbinstream::operator <<(const void* p)
 {
     _pushBackBinaryOrder<uint64>( reinterpret_cast<uint64>(p) );
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
@@ -1235,14 +1305,14 @@ rbinstream& rbinstream::operator <<(const char* cs)
     size_type i = 0;
     while ( cs[i] )
         _pushBackOutput( cs[i++] );
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }
 rbinstream& rbinstream::operator <<(const generic_string& s)
 {
     _pushBackOutputString(s);
-    if (!_doesBuffer)
+    if ( !does_buffer_output() )
         _outDevice();
     return *this;
 }

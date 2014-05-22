@@ -6,6 +6,7 @@
 #include "rstring.h"
 #include "rqueue.h"
 #include "rset.h"
+#include "rerror.h"
 
 namespace rtypes
 {
@@ -95,6 +96,7 @@ namespace rtypes
     {
     public:
         stream_base();
+        stream_base(bool doesBuffer);
         virtual ~stream_base() {}
 
         char get();
@@ -151,7 +153,7 @@ namespace rtypes
 
         operator void*() const // determines the status of the last input operation
         { return (void*) _lastSuccess; }
-    protected:
+    private:
         mutable bool _lastSuccess;
         bool _doesBuffer; // applies to the output buffer; behavior enforced by derived implementation
     };
@@ -182,6 +184,7 @@ namespace rtypes
     {
     public:
         rstream();
+        rstream(bool doesBuffer);
         virtual ~rstream() {}
 
         // delimit operations
@@ -261,6 +264,7 @@ namespace rtypes
         char _fill;
         numeric_representation _repFlag;
 
+        void _init();
         bool _isWhitespace(char);
 
         template<typename Numeric>
@@ -302,6 +306,8 @@ namespace rtypes
     public:
         rbinstream(); // set default endianness to little
         rbinstream(endianness); // set default endianness
+        rbinstream(bool doesBuffer); // set default endianness to little; set buffering mode
+        rbinstream(endianness,bool doesBuffer); // set default endianness; set buffering mode
 
         //input operations
         rbinstream& operator >>(bool&);
@@ -463,6 +469,8 @@ namespace rtypes
         {
             // clear stream IO buffers
             _outDevice(); // route any data left over in the output buffer
+            _ideviceIter = 0;
+            _odeviceIter = 0;
             _flushInputBuffer();
             _flushOutputBuffer(); // just in case
             if (_owned) // if owned, simply close
@@ -517,113 +525,80 @@ namespace rtypes
     /* const_stream_device
      *  Abstract base class that optionally can be inherited alongside
      * rstream or rbinstream that provides device functionality. A standard
-     * rstream or rbinstream must inherit this interface as well.
+     * conforming rstream or rbinstream should inherit this interface as well.
      *
      * A const_stream_device<T> is an interface to some IO device of type T. It provides operations
-     * for opening, closing, and maintaining the IO device. A const_stream_device<T> always refers to some
-     * valid const object of type T, though IO on the object may be invalid. Output to the object is
-     * prohibited since the object is const and its state cannot change. If the object has a non-const
-     * input operation, then it does not conform to standard rstream/rbinstream functionality. A const_stream_device
-     * operates in two modes: owned and non-owned depending on how the device was opened
-     * Owned-mode: in this mode, the stream operates on a device IO object that it has allocated
-     * Non-owned mode: in this mode, the stream operates on a device IO object that has been provided
-     * for it by the user
+     * for opening, closing, and maintaining the IO device. A const_stream_device refers to a device object
+     * only by reference. Unlike stream_device, it never creates a default device object. This object reference
+     * is const-qualified, meaning all write operations have been restricted and its internal state cannot change
+     * via the stream.
      *
-     * A stream_device<T> has a second default template parameter which optionally can indicate the base
-     * type to use, in case the device type is a sub-class from some heirarchy. This is useful if you 
-     * want the stream device to handle any sub-class in unowned mode yet still be able to create a concrete
-     * object of one of the sub-classes in the heirarchy.
+     * A const_stream_device operates in two modes: valid and invalid depending on how the device was opened -
+     * Invalid mode: in this mode, the stream does not operate on a device and any IO operations fail.
+     * Valid mode: in this mode, the stream operates on an IO device object that has been provided
+     * for it by the user.
      *
      * A const_stream_device<T> may have a non-const open operation. In anticipation of this, the interface member
      * function _openDevice accepts a non-const pointer to the const_stream_device<T>'s device object. This way, the
      * stream device can perform a non-const open operation. (This is implemented merely has a const_cast from _device.)
      *
      * A const_stream_device<T> has access to the rstream or rbinstream's stream buffer but nothing more and
-     * may only read into that buffer. If an rstream or rbinstream is using a const_stream_device, then the well-defined
+     * may only read out of that buffer. If an rstream or rbinstream is using a const_stream_device, then the well-defined
      * behavior is to implement _outDevice as taking no action.
      */
-    template<typename T,typename BaseT = T>
+    template<typename DeviceT>
     class const_stream_device : virtual protected stream_buffer
     {
     public:
         const_stream_device()
-        {
-            _device = new T;
-            _owned = true;
-        }
-        const_stream_device(const BaseT& device)
-        {
-            _device = &device;
-            _owned = false;
-        }
+            : _device(NULL) { }
+        const_stream_device(const DeviceT& device)
+            : _device(&device) { }
         const_stream_device(const const_stream_device& obj)
         {
-            if (obj._owned)
-            {
-                // make a copy of the device (deep copy)
-                _device = new T( *obj._device );
-                _owned = true;
-            }
-            else
-            {
-                // copy the reference
-                _device = obj._device;
-                _owned = false;
-            }
-        }
-        virtual ~const_stream_device()
-        {
-            if (_owned)
-                delete _device;
+            // copy the reference (it may be invalid)
+            _device = obj._device;
         }
 
         const_stream_device& operator =(const const_stream_device& obj)
         {
             if (this != &obj)
             {
-                // clear input buffer
-                _flushInputBuffer();
-                if (obj._owned)
-                {
-                    if (_owned)
-                    {
-                        _closeDevice();
-                        *const_cast<BaseT*>(_device) = *obj._device;
-                    }
-                    else // forget old non-owned reference and create new owned device
-                        _device = new T( *obj._device );
-                }
+                if (obj._device == NULL)
+                    close(); // make this object's state match the invalid state of 'obj'
                 else
-                {
-                    // copy the reference
-                    if (_owned)
-                        delete _device; // assume that the destructor will close the device
-                    _device = obj._device;
-                }
-                _owned = obj._owned;
+                    assign(*obj._device);
             }
             return *this;
         }
 
-        bool open(const char* pDeviceID)
+        /* make this const stream device refer to the specified device
+         * object; no open operation is attempted; the device may be in
+         * whatever state
+         */
+        void assign(const DeviceT& device)
         {
-            if (_owned)
-                return _openDevice(const_cast<BaseT*>(_device),pDeviceID);
-            return false;
-        }
-        void open(const BaseT& device)
-        {
-            // open a non-owned device
-            if (_owned)
-                delete _device; // assume destructor will close device
+            // use close functionality in case this const stream
+            // device referred to another device object
+            close();
+            // copy a reference to the device object
             _device = &device;
-            _owned = false;
+        }
+
+        /* attempts an open operation on an assigned device; the operation
+         * is left up to the virtual derived implementation
+         */
+        bool open(const char* deviceID)
+        {
+            if (_device != NULL)
+                return _openDevice(const_cast<DeviceT*>(_device),deviceID);
+            return false;
         }
 
         /* for a const stream device, this member
          * has a slightly different meaning; it
          * merely clears the stream buffers, not
-         * the underlying device
+         * the underlying device (since it's const)
          */
         void clear()
         {
@@ -634,50 +609,60 @@ namespace rtypes
             _flushOutputBuffer();
         }
 
+        /* attempts a close operation on the opened device, flushing
+         * all buffers used for IO operations; the device object is
+         * then forgotten and the const_stream_device enters an invalid
+         * state
+         */
         void close()
         {
-            // clear stream IO buffers
+            // clear the state of this device, routing any
+            // data in the output buffer to the device
+            _outDevice();
+            _ideviceIter = 0;
             _flushInputBuffer();
             _flushOutputBuffer();
-            if (_owned) // if owned, simply close
+            // attempt to close device in some device
+            // independent way
+            if (_device != NULL)
                 _closeDevice();
-            else
-            {
-                _device = new T; // forget non-owned reference and allocate new device object
-                _owned = true;
-            }
             // raise close event that lets derived
             // implementation know that the device
             // was closed by the stream
             _closeEvent();
+            // reset this state to null
+            _device = NULL;
         }
 
-        const BaseT& get_device() const
-        { return *_device; }
+        bool is_valid()
+        { return _device != NULL; }
+
+        /* gets a reference to the current device
+         */
+        const DeviceT& get_device() const
+        {
+            if (_device != NULL)
+                return *_device;
+            throw invalid_operation_error();
+        }
     protected:
-        const BaseT* _device;
-
-        bool _isOwned() const
-        { return _owned; }
+        const DeviceT* _device;
     private:
-        bool _owned;
-
         /* virtual interface to be completed by derived class
          *  (any non-pure-virtual function is optional and by default does nothing)
-         * - _openDevice(): should open an owned device based on a string device ID; a pointer to
+         * - _openDevice(): should open a valid device based on a string device ID; a pointer to
          *      a mutable device object is passed so that the open procedure can be completed
          *
          * - _closeDevice(): should perform implementation-defined operations to close the IO device
-         *      and release any OS resources they were using; this member function is only called when
-         *      an owned device is being closed. From the stream's perspective, it does not know how to properly close
-         *      an IO device that it owns and needs a reference. stream_device<T> assumes that when an IO device reference
-         *      is destroyed that the proper close action takes place
+         *      and release any OS resources they were using; this member function is called when the close
+         *      public interface function is called. From the stream's perspective, it does not know how to properly close
+         *      an IO device that it owns and needs a reference.
          *
-         * - _closeEvent() [optional]: should perform any close actions for the stream; unlike _closeDevice, _closeEvent
-         *  is invoked each time a stream is being closed. This allows the stream's derived implementation to perform any
-         *  needed close action. The default behavior of this member function is to do nothing.
+         * - _closeEvent() [optional]: should perform any close actions for the stream; _closeEvent is invoked each time
+         *  a stream is being closed. This allows the stream's derived implementation to perform any needed close action.
+         *  The default behavior of this member function is to do nothing.
          */
-        virtual bool _openDevice(BaseT* mutableDevice,const char* deviceID) = 0;
+        virtual bool _openDevice(DeviceT* mutableDevice,const char* deviceID) = 0;
         virtual void _closeDevice() = 0;
         virtual void _closeEvent() {}
     };

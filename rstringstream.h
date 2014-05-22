@@ -27,18 +27,17 @@ namespace rtypes
         virtual void _outDevice();
     };
 
-    class const_rstringstream : public rstream, public const_stream_device<str,generic_string>
+    class const_rstringstream : public rstream, public const_stream_device<generic_string>
     {
     public:
         const_rstringstream();
-        const_rstringstream(const char* initialValue);
         const_rstringstream(const generic_string& strDevice);
     private:
         virtual bool _openDevice(generic_string*,const char*);
         virtual void _closeDevice();
         
         virtual bool _inDevice() const;
-        virtual void _outDevice() {}
+        virtual void _outDevice() {} // not allowed
     };
         
     class rbinstringstream : public rbinstream, public stream_device<str,generic_string>
@@ -58,11 +57,10 @@ namespace rtypes
         virtual void _outDevice();
     };
 
-    class const_rbinstringstream : public rbinstream, public const_stream_device<str,generic_string>
+    class const_rbinstringstream : public rbinstream, public const_stream_device<generic_string>
     {
     public:
         const_rbinstringstream();
-        const_rbinstringstream(const char* initialValue);
         const_rbinstringstream(const generic_string& strDevice);
         const_rbinstringstream(endianness endianFlag);
     private:
@@ -70,7 +68,7 @@ namespace rtypes
         virtual void _closeDevice();
 
         virtual bool _inDevice() const;
-        virtual void _outDevice() {}
+        virtual void _outDevice() {} // not allowed
     };
 }
 

@@ -8,7 +8,7 @@ include rlibrary-build-vars.mk
 
 # object file lists
 # (rlibrary/utility)
-UTILITY_OBJ_files = $(addprefix $(OBJDIR)/,rutil_def_memory.o rutil_strcmp.o rutil_strlen.o rutil_strcpy.o rutil_strncpy.o rutil_to_lower.o rutil_to_upper.o)
+UTILITY_OBJ_files = $(addprefix $(OBJDIR)/,rutil_def_memory.o rutil_strcmp.o rutil_strlen.o rutil_strcpy.o rutil_strncpy.o rutil_to_lower.o rutil_to_upper.o rutil_strip_whitespace.o)
 # (rlibrary/integration)
 INTEGRATION_OBJ_files = $(addprefix $(OBJDIR)/,rintrg_ostream_str.o rintrg_istream_str.o)
 # (rlibrary/impl)

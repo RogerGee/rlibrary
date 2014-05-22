@@ -21,6 +21,8 @@ namespace rtypes
     str rutil_to_upper(const char*); // return upper-case string variant
     str rutil_to_upper(const generic_string&);
     void rutil_to_upper_ref(generic_string&); // change string to upper-case variant
+    str rutil_strip_whitespace(const generic_string&); // return string variant minus leading and trailing whitespace
+    void rutil_strip_whitespace_ref(generic_string&); // change string to variant minus leading and trailing whitespace
 }
 
 #endif

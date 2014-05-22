@@ -42,6 +42,11 @@ namespace rtypes
         static int code()
         { return 0; }
     };
+    struct invalid_operation_error : rlib_error
+    {
+        virtual const char* message() const
+        { return "The specified operation is invalid."; }
+    };
     struct undefined_operation_error : rlib_error
     {
         virtual const char* message() const
@@ -50,7 +55,7 @@ namespace rtypes
     struct bad_resource_assignment_error : rlib_error
     {
         virtual const char* message() const
-        { return "The rresource could not assign the specified value because it does not have enough bit-width."; }
+        { return "The rresource could not assign the specified value because it did not align on the needed byte boundery."; }
     };
     struct out_of_bounds_error : rlib_error
     {
