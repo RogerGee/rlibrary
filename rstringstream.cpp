@@ -2,187 +2,191 @@
 #include "rstringstream.h"
 using namespace rtypes;
 
-rstringstream::rstringstream()
+stringstream_io::stringstream_io()
     : rstream(false)
-{
-    // allow default construction
+{ // don't buffer local characters by default
 }
-rstringstream::rstringstream(const char* initialValue)
-    : rstream(false)
+bool stringstream_io::_inDeviceImpl(const generic_string* device) const
 {
-    // construct with default value (enforced by the behavior of device ID open)
-    open(initialValue);
+    // place all available bytes from the string into the buffer
+    if (_ideviceIter < device->length())
+    {
+        while (_ideviceIter < device->length())
+            _bufIn.push( device->operator[](_ideviceIter++) );
+        return true; // data was put into the stream
+    }
+    return false; // data was not put into the stream
 }
-rstringstream::rstringstream(generic_string& strDevice)
-    : rstream(false), stream_device<str,generic_string>(strDevice)
+void stringstream_io::_outDeviceImpl(generic_string* device)
 {
+    const char* data = &_bufOut.peek();
+    for (uint32 i = 0;i<_bufOut.size();i++,_odeviceIter++)
+        if (_odeviceIter < device->length()) // replace existing character
+            device->operator[](_odeviceIter) = data[i];
+        else // grow the string
+            device->push_back(data[i]);
+    _bufOut.pop_range( _bufOut.size() );
+}
 
+binstringstream_io::binstringstream_io()
+    : rbinstream(false)
+{ // don't buffer local bytes by default
 }
-rstringstream::~rstringstream()
+binstringstream_io::binstringstream_io(endianness e)
+    : rbinstream(e,false)
+{ // set endianness flag; don't buffer local bytes by default
+}
+bool binstringstream_io::_inDeviceImpl(const generic_string* device) const
 {
-    // complete the stream_base behavior by calling a virtual
-    // member function that stream_base cannot
-    flush_output();
+    // place all available bytes from the string into the buffer
+    if (_ideviceIter < device->length())
+    {
+        while (_ideviceIter < device->length())
+            _bufIn.push( device->operator[](_ideviceIter++) );
+        return true; // data was put into the stream
+    }
+    return false; // data was not put into the stream
 }
-void rstringstream::_clearDevice()
+void binstringstream_io::_outDeviceImpl(generic_string* device)
+{
+    const char* data = &_bufOut.peek();
+    for (uint32 i = 0;i<_bufOut.size();i++,_odeviceIter++)
+        if (_odeviceIter < device->length()) // replace existing character
+            device->operator[](_odeviceIter) = data[i];
+        else // grow the string
+            device->push_back(data[i]);
+    _bufOut.pop_range( _bufOut.size() );
+}
+
+
+void string_stream_device::_clearDevice()
 {
     _device->clear();
 }
-bool rstringstream::_openDevice(const char* deviceID)
+bool string_stream_device::_openDevice(const char* deviceID)
 {
     *_device = deviceID;
     _odeviceIter = _device->length(); // open for appending
     return true; // always succeeds
 }
-void rstringstream::_closeDevice()
-{
-    // a string doesn't have any close action
-}
-bool rstringstream::_inDevice() const
-{
-    // place all available bytes from the string into the buffer
-    if (_ideviceIter < _device->length())
-    {
-        while (_ideviceIter < _device->length())
-            _bufIn.push( _device->operator[](_ideviceIter++) );
-        return true; // data was put into the stream
-    }
-    return false; // data was not put into the stream
-}
-void rstringstream::_outDevice()
-{
-    const char* data = &_bufOut.peek();
-    for (uint32 i = 0;i<_bufOut.size();i++,_odeviceIter++)
-        if (_odeviceIter < _device->length()) // replace existing character
-            _device->operator[](_odeviceIter) = data[i];
-        else // grow the string
-            _device->push_back(data[i]);
-    _bufOut.pop_range( _bufOut.size() );
+void string_stream_device::_closeDevice()
+{ // a string doesn't have any close action
 }
 
-const_rstringstream::const_rstringstream()
-    : rstream(false)
+void generic_string_stream_device::_clearDevice()
 {
-    // allow for default construction
+    _device->clear();
 }
-const_rstringstream::const_rstringstream(const generic_string& strDevice)
-    : rstream(false), const_stream_device<generic_string>(strDevice)
+bool generic_string_stream_device::_openDevice(const char* deviceID)
 {
+    *_device = deviceID;
+    _odeviceIter = _device->length(); // open for appending
+    return true; // always succeeds
+}
+void generic_string_stream_device::_closeDevice()
+{ // a string doesn't have any close action
+}
 
-}
-bool const_rstringstream::_openDevice(generic_string* device,const char* deviceID)
+bool const_string_stream_device::_openDevice(generic_string* device,const char* deviceID)
 {
     *device = deviceID;
     return true; // always succeeds
 }
-void const_rstringstream::_closeDevice()
-{
-    // a string doesn't have any close action
-}
-bool const_rstringstream::_inDevice() const
-{
-    // place all available bytes from the string into the buffer
-    if (_ideviceIter < _device->length())
-    {
-        while (_ideviceIter < _device->length())
-            _bufIn.push( _device->operator[](_ideviceIter++) );
-        return true; // data was put into the stream
-    }
-    return false; // data was not put into the stream
+void const_string_stream_device::_closeDevice()
+{ // a string doesn't have any close action
 }
 
-rbinstringstream::rbinstringstream()
-    : rbinstream(false)
-{
-    // allow default construction
+
+stringstream::stringstream()
+{ // allow default construction
 }
-rbinstringstream::rbinstringstream(const char* initialValue)
-    : rbinstream(false)
+stringstream::stringstream(const char* initialValue)
 {
     // construct with default value (enforced by the behavior of device ID open)
     open(initialValue);
 }
-rbinstringstream::rbinstringstream(generic_string& strDevice)
-    : rbinstream(false), stream_device<str,generic_string>(strDevice)
-{
-
-}
-rbinstringstream::rbinstringstream(endianness endianFlag)
-    : rbinstream(endianFlag,false)
+stringstream::stringstream(generic_string& strDevice)
+    : string_stream_device(strDevice)
 {
 }
-rbinstringstream::~rbinstringstream()
+stringstream::~stringstream()
 {
     // complete the stream_base behavior by calling a virtual
     // member function that stream_base cannot
-    flush_output();
-}
-void rbinstringstream::_clearDevice()
-{
-    _device->clear();
-}
-bool rbinstringstream::_openDevice(const char* deviceID)
-{
-    *_device = deviceID;
-    _odeviceIter = _device->length();
-    return true; // always succeeds
-}
-void rbinstringstream::_closeDevice()
-{
-    // a string doesn't have any close action
-}
-bool rbinstringstream::_inDevice() const
-{
-    // place all available bytes from the string into the buffer
-    if (_ideviceIter < _device->length())
-    {
-        while (_ideviceIter < _device->length())
-            _bufIn.push( _device->operator[](_ideviceIter++) );
-        return true; // data was put into the stream
-    }
-    return false; // data was not put into the stream
-}
-void rbinstringstream::_outDevice()
-{
-    const char* data = &_bufOut.peek();
-    for (uint32 i = 0;i<_bufOut.size();i++,_odeviceIter++)
-        if (_odeviceIter < _device->length()) // replace existing character
-            _device->operator[](_odeviceIter) = data[i];
-        else // grow the string
-            _device->push_back(data[i]);
-    _bufOut.pop_range( _bufOut.size() );
+    _outDevice();
 }
 
-const_rbinstringstream::const_rbinstringstream()
-    : rbinstream(false)
-{
-    // allow for default construction
+ref_stringstream::ref_stringstream()
+{ // allow for default construction
 }
-const_rbinstringstream::const_rbinstringstream(const generic_string& strDevice)
-    : rbinstream(false), const_stream_device<generic_string>(strDevice)
+ref_stringstream::ref_stringstream(generic_string& strDevice)
+    : generic_string_stream_device(strDevice)
 {
 }
-const_rbinstringstream::const_rbinstringstream(endianness endianFlag)
-    : rbinstream(endianFlag,false)
+ref_stringstream::~ref_stringstream()
+{
+    // complete the stream_base behavior by calling a virtual
+    // member function that stream_base cannot
+    _outDevice();
+}
+
+const_stringstream::const_stringstream()
+{ // allow for default construction
+}
+const_stringstream::const_stringstream(const generic_string& strDevice)
+    : const_string_stream_device(strDevice)
 {
 }
-bool const_rbinstringstream::_openDevice(generic_string* device,const char* deviceID)
-{
-    *device = deviceID;
-    return true; // always succeeds
+
+binstringstream::binstringstream()
+{ // allow default construction
 }
-void const_rbinstringstream::_closeDevice()
+binstringstream::binstringstream(const char* initialValue)
 {
-    // a string doesn't have any close action
+    // construct with default value (enforced by the behavior of device ID open)
+    open(initialValue);
 }
-bool const_rbinstringstream::_inDevice() const
+binstringstream::binstringstream(generic_string& strDevice)
+    : string_stream_device(strDevice)
 {
-    // place all available bytes from the string into the buffer
-    if (_ideviceIter < _device->length())
-    {
-        while (_ideviceIter < _device->length())
-            _bufIn.push( _device->operator[](_ideviceIter++) );
-        return true; // data was put into the stream
-    }
-    return false; // data was not put into the stream
+}
+binstringstream::binstringstream(endianness endianFlag)
+    : binstringstream_io(endianFlag)
+{
+}
+binstringstream::~binstringstream()
+{
+    // complete the stream_base behavior by calling a virtual
+    // member function that stream_base cannot
+    _outDevice();
+}
+
+ref_binstringstream::ref_binstringstream()
+{ // allow for default construction
+}
+ref_binstringstream::ref_binstringstream(generic_string& strDevice)
+    : generic_string_stream_device(strDevice)
+{
+}
+ref_binstringstream::ref_binstringstream(endianness endianFlag)
+    : binstringstream_io(endianFlag)
+{
+}
+ref_binstringstream::~ref_binstringstream()
+{
+    // complete the stream_base behavior by calling a virtual
+    // member function that stream_base cannot
+    _outDevice();
+}
+
+const_binstringstream::const_binstringstream()
+{ // allow for default construction
+}
+const_binstringstream::const_binstringstream(const generic_string& strDevice)
+    : const_string_stream_device(strDevice)
+{
+}
+const_binstringstream::const_binstringstream(endianness endianFlag)
+    : binstringstream_io(endianFlag)
+{
 }

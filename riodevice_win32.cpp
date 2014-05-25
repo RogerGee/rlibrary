@@ -135,3 +135,71 @@ void io_device::_writeBuffer(const io_resource* context,const void* buffer,uint3
         _byteCount = 0;
     }
 }
+
+// rtypes::io_stream
+bool io_stream::_inDevice() const
+{
+    /* An rstream uses \n only to represent end lines; any \r octet is
+     * dropped from the input stream. This way, blocks can be read in 
+     * efficiently in case the underlying device has a lot of data.
+     */
+    uint32 i;
+    uint32 cnt;
+    char buffer[4096];
+    // read in a buffer
+    _device->read(buffer,4096);
+    cnt = _device->get_last_byte_count();
+    i = 0;
+    while (i < cnt)
+    {
+        const char* pbuf = buffer+i;
+        uint32 len = 0;
+        while (i<cnt && pbuf[len]!='\r')
+            ++len, ++i;
+        _bufIn.push_range(pbuf,len);
+        ++i;
+    }
+    // return success if at least some bytes where read
+    return cnt > 0;
+}
+void io_stream::_outDevice()
+{
+    /* On Windows, the \r\n endline
+     * encoding is commonly used on many
+     * devices. Therefore, all \n characters
+     * are translated into the sequence \r\n.
+     */
+    uint32 iter = 0;
+    const char* pbuffer = &_bufOut.peek();
+    while (true)
+    {
+        uint32 length = 0;
+        while (iter<_bufOut.size() && pbuffer[length] != '\n')
+            ++length, ++iter;
+        _device->write(pbuffer,length);
+        if (iter >= _bufOut.size())
+            break;
+        _device->write("\r\n",2);
+        pbuffer += length+1;
+        ++iter;
+    }
+    _bufOut.clear();
+}
+
+// rtypes::binary_io_stream
+bool binary_io_stream::_inDevice() const
+{
+    char buffer[4096];
+    _device->read(buffer,4096);
+    if (_device->get_last_operation_status() == success_read)
+    {
+        _bufIn.push_range(buffer,_device->get_last_byte_count());
+        return true;
+    }
+    return false;
+}
+void binary_io_stream::_outDevice()
+{
+    _device->write(&_bufOut.peek(),_bufOut.size());
+    _bufOut.clear();
+}

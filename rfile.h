@@ -23,6 +23,8 @@ namespace rtypes
         file();
         file(const char* fileName,file_open_mode mode = file_open_always);
 
+        file& operator =(const file&);
+
         // open a file for specific access and with specified disposition
         bool open(const char* fileName,file_open_mode mode = file_open_always);
         bool open_input(const char* fileName,file_open_mode mode = file_open_always);

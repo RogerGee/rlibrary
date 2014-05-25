@@ -353,41 +353,175 @@ namespace rtypes
         Numeric _fromString(const str&,bool&);
     };
 
-    /* stream_device
-     *  Abstract base class that optionally can be inherited alongside
-     * rstream or rbinstream that provides device functionality. A standard
-     * rstream or rbinstream must inherit this interface as well.
+    /* generic_stream_device and stream_device
+     *  Abstract base classes that optionally can be inherited alongside
+     * rstream or rbinstream that provide device functionality. A standard
+     * rstream or rbinstream inherits one of these interfaces.
      *
-     * A stream_device<T> is an interface to some IO device of type T. It provides operations
-     * for opening, closing, and maintaining the IO device. A stream_device<T> always refers to some
-     * valid object of type T, though IO on the object may be invalid. It operates in two modes: owned
-     * and un-owned.
-     * Owned-mode: in this mode, the stream operates on a device IO object that it has allocated
+     * A generic_stream_device<T> is an interface to some IO device of type T. It provides operations
+     * for opening, closing, and maintaining the IO device. A generic_stream_device<T> refers to some
+     * external IO device of type T or none at all. It merely stores a reference to a device. Initially,
+     * this object is invalid since it refers to no device object.
+     *
+     * A stream_device<T,U> is a derivation of generic_stream_device<U> that provides operations related to
+     * opening, closing, and maintaining some IO device of type U. A stream_device<T,U> always maintains a valid
+     * reference to an object of type U. It operates in two modes: owned and un-owned.
+     * Owned-mode: in this mode, the stream operates on a device IO object that it has allocated of type T; T should
+     * be a sub-class of type U; this allows you to assign references to base class objects while still allowing the stream
+     * device to instantiate a valid device object
      * Non-owned mode: in this mode, the stream operates on a device IO object that has been provided
-     * for it by the user
+     * for it by the user, in much the same way a generic_stream_device<U> object functions
      *
-     * A stream_device<T> has a second default template parameter which optionally can indicate the base
-     * type to use, in case the device type is a sub-class from some heirarchy. This is useful if you 
-     * want the stream device to handle any sub-class in unowned mode yet still be able to create a concrete
-     * object of one of the sub-classes in the heirarchy.
-     *
-     * A stream_device<T> has access to the rstream or rbinstream's stream buffer but nothing more.
+     * Any stream stream object has access to the rstream or rbinstream's stream buffer and iterators but nothing more.
      */
+    template<typename DeviceT>
+    class generic_stream_device : virtual protected stream_buffer
+    {
+    public:
+        generic_stream_device()
+            : _device(NULL)
+        {
+        }
+        generic_stream_device(DeviceT& device)
+            : _device(&device)
+        {
+        }
+        generic_stream_device(const generic_stream_device& obj)
+            : _device(obj._device)
+        {
+        }
+
+        generic_stream_device& operator =(generic_stream_device& obj)
+        {
+            if (this != &obj)
+            {
+                // reset the state of the stream device
+                forget();
+                // assign reference
+                _device = obj._device;
+            }
+            return *this;
+        }
+
+        void assign(DeviceT& device) // note: no return status is necessary since the device is managed in another context
+        {
+            // assign a reference to the specified device
+            _assignDeviceAction(); // take care of anything that needs to be done beforehand
+            _device = &device;
+        }
+
+        bool open(const char* deviceID)
+        {
+            // attempt open operation on device
+            if (_device != NULL)
+                return _openDevice(deviceID);
+            return false;
+        }
+
+        void clear()
+        {
+            _clearDevice();
+            // reset iterators for accurate reporting
+            _ideviceIter = 0;
+            _odeviceIter = 0;
+            // clear stream IO buffers
+            _flushInputBuffer();
+            _flushOutputBuffer();
+        }
+
+        void forget()
+        {
+            // almost close the device by invalidating the current reference
+            if (_device != NULL)
+            {
+                // clear stream IO buffers
+                _outDevice();
+                _ideviceIter = 0;
+                _odeviceIter = 0;
+                _flushInputBuffer();
+                _flushOutputBuffer();
+                // let derived implementation perform forget action
+                _forgetDeviceAction();
+            }
+        }
+
+        void close()
+        {
+            if (_device != NULL)
+            {
+                // clear stream IO buffers
+                _outDevice(); // route any data left over in the output buffer
+                _ideviceIter = 0;
+                _odeviceIter = 0;
+                _flushInputBuffer();
+                _flushOutputBuffer(); // just in case
+                // let derived implementation close the device in some way
+                _closeDevice();
+                // let derived implementation perform close action
+                _closeDeviceAction();
+                // raise close event for derived implementation
+                _closeEvent();
+            }
+        }
+
+        DeviceT& get_device()
+        { return *_device; }
+        const DeviceT& get_device() const
+        { return *_device; }
+    protected:
+        DeviceT* _device;
+    private:
+        /* virtual interface for immediate stream_device derivation */
+        virtual void _assignDeviceAction()
+        {
+            // no action required
+        }
+        virtual void _forgetDeviceAction()
+        {
+            _device = NULL;
+        }
+        virtual void _closeDeviceAction()
+        {
+            _device = NULL;
+        }
+
+        /* virtual interface to be completed by derived class
+         *      (any non-pure-virtual function is optional and by default does nothing)
+         *
+         * - _clearDevice(): should remove all data from the device if possible; if not possible
+         *  this function should do nothing
+         *
+         * - _openDevice(): should open an owned device based on a string device ID
+         *
+         * - _closeDevice(): should perform implementation-defined operations to close the IO device
+         *      and release any OS resources they were using. From the stream's perspective, it does
+         *      not know how to properly close an IO device that it manages. Class stream_device<T> assumes
+         *      that when an IO device reference is destroyed that the proper close action takes place.
+         *
+         * - _closeEvent() [optional]: should perform any close actions for the stream; unlike _closeDevice, _closeEvent
+         *  is invoked each time a stream is being closed. This allows the stream's derived implementation to perform any
+         *  needed close action. The default behavior of this member function is to do nothing.
+         */
+        virtual void _clearDevice() = 0;
+        virtual bool _openDevice(const char* DeviceID) = 0;
+        virtual void _closeDevice() = 0;
+        virtual void _closeEvent() {}
+    };
+
     template<typename T,typename BaseT = T>
-    class stream_device : virtual protected stream_buffer
+    class stream_device : public generic_stream_device<BaseT>
     {
     public:
         stream_device()
+            : generic_stream_device<BaseT>(*(new T)), _owned(true)
         {
-            _device = new T;
-            _owned = true;
         }
         stream_device(BaseT& device)
+            : generic_stream_device<BaseT>(device), _owned(false)
         {
-            _device = &device;
-            _owned = false;
         }
         stream_device(const stream_device& obj)
+            : generic_stream_device<BaseT>(obj)
         {
             if (obj._owned)
             {
@@ -412,17 +546,13 @@ namespace rtypes
         {
             if (this != &obj)
             {
-                // clear IO buffers
-                _outDevice();
-                _flushInputBuffer();
-                _flushOutputBuffer();
+                // clear the stream buffer's state
+                generic_stream_device<BaseT>::forget();
+                // based on the owned state of 'obj', perform an assignment of the device
                 if (obj._owned)
                 {
                     if (_owned)
-                    {
-                        _closeDevice();
                         *_device = *obj._device;
-                    }
                     else // forget old non-owned reference and create new owned device
                         _device = new T( *obj._device );
                 }
@@ -437,89 +567,38 @@ namespace rtypes
             }
             return *this;
         }
-
-        bool open(const char* deviceID)
-        {
-            // open an owned device
-            if (_owned)
-                return _openDevice(deviceID);
-            return false;
-        }
-        void open(BaseT& device) // note: no return status is necessary since the device is managed in another context
-        {
-            // open a non-owned device
-            if (_owned)
-                delete _device; // assume destructor will close device
-            _device = &device;
-            _owned = false;
-        }
-
-        void clear()
-        {
-            _clearDevice();
-            // reset iterators for accurate reporting
-            _ideviceIter = 0;
-            _odeviceIter = 0;
-            // clear stream IO buffers
-            _flushInputBuffer();
-            _flushOutputBuffer();
-        }
-
-        void close()
-        {
-            // clear stream IO buffers
-            _outDevice(); // route any data left over in the output buffer
-            _ideviceIter = 0;
-            _odeviceIter = 0;
-            _flushInputBuffer();
-            _flushOutputBuffer(); // just in case
-            if (_owned) // if owned, simply close
-                _closeDevice();
-            else
-            {
-                _device = new T; // forget non-owned reference and allocate new device object
-                _owned = true;
-            }
-            // raise close event that lets derived
-            // implementation know that the device
-            // was closed by the stream
-            _closeEvent();
-        }
-
-        BaseT& get_device()
-        { return *_device; }
-        const BaseT& get_device() const
-        { return *_device; }
     protected:
-        BaseT* _device;
+        using generic_stream_device<BaseT>::_device;
 
         bool _isOwned()
         { return _owned; }
     private:
         bool _owned;
 
-        /* virtual interface to be completed by derived class
-         *      (any non-pure-virtual function is optional and by default does nothing)
-         *
-         * - _clearDevice(): should remove all data from the device if possible; if not possible
-         *  this function should do nothing
-         *
-         * - _openDevice(): should open an owned device based on a string device ID
-         *
-         * - _closeDevice(): should perform implementation-defined operations to close the IO device
-         *      and release any OS resources they were using; this member function is only called when
-         *      an owned device is being closed. From the stream's perspective, it does not know how to properly close
-         *      an IO device that it owns and needs a reference. stream_device<T> assumes that when an IO device reference
-         *      is destroyed that the proper close action takes place
-         *
-         * - _closeEvent() [optional]: should perform any close actions for the stream; unlike _closeDevice, _closeEvent
-         *  is invoked each time a stream is being closed. This allows the stream's derived implementation to perform any
-         *  needed close action. The default behavior of this member function is to do nothing.
-         */
-        virtual void _clearDevice() = 0;
-        virtual bool _openDevice(const char* DeviceID) = 0;
-        virtual void _closeDevice() = 0;
-        virtual void _closeEvent() {}
+        virtual void _assignDeviceAction() // called upon assigning a non-owned device (reference)
+        {
+            // if the device is owned, it needs to be closed
+            // and deallocated
+            if (_owned)
+                delete _device; // assume destructor will close device
+            _owned = false;
+        }
+        virtual void _forgetDeviceAction()
+        {
+            if (!_owned)
+            {
+                _device = new T; // forget non-owned reference and allocate new device object
+                _owned = true;
+            }
+        }        
+        virtual void _closeDeviceAction()
+        {
+            if (!_owned)
+            {
+                _device = new T; // forget non-owned reference and allocate new device object
+                _owned = true;
+            }
+        }
     };
 
     /* const_stream_device
@@ -565,7 +644,7 @@ namespace rtypes
             if (this != &obj)
             {
                 if (obj._device == NULL)
-                    close(); // make this object's state match the invalid state of 'obj'
+                    forget(); // match the null state of 'obj'
                 else
                     assign(*obj._device);
             }
@@ -578,9 +657,8 @@ namespace rtypes
          */
         void assign(const DeviceT& device)
         {
-            // use close functionality in case this const stream
-            // device referred to another device object
-            close();
+            // reset stream in preparation for new device reference
+            forget();
             // copy a reference to the device object
             _device = &device;
         }
@@ -604,9 +682,24 @@ namespace rtypes
         {
             // reset input iterator (it's the only one that's used)
             _ideviceIter = 0;
-            // flush stream IO buffers
+            // flush input stream buffer
             _flushInputBuffer();
-            _flushOutputBuffer();
+        }
+
+        /* attempts to forget the current reference; the input state
+         * of the stream is reset and the const_stream_device enters
+         * an invalid state
+         */
+        void forget()
+        {
+            if (_device != NULL)
+            {
+                // clear the state of this device
+                _ideviceIter = 0;
+                _flushInputBuffer();
+                // reset this state to null
+                _device = NULL;
+            }
         }
 
         /* attempts a close operation on the opened device, flushing
@@ -616,22 +709,21 @@ namespace rtypes
          */
         void close()
         {
-            // clear the state of this device, routing any
-            // data in the output buffer to the device
-            _outDevice();
-            _ideviceIter = 0;
-            _flushInputBuffer();
-            _flushOutputBuffer();
-            // attempt to close device in some device
-            // independent way
             if (_device != NULL)
+            {
+                // clear the state of this device
+                _ideviceIter = 0;
+                _flushInputBuffer();
+                // attempt to close device in some device
+                // independent way
                 _closeDevice();
-            // raise close event that lets derived
-            // implementation know that the device
-            // was closed by the stream
-            _closeEvent();
-            // reset this state to null
-            _device = NULL;
+                // raise close event that lets derived
+                // implementation know that the device
+                // was closed by the stream
+                _closeEvent();
+                // reset this state to null
+                _device = NULL;
+            }
         }
 
         bool is_valid()

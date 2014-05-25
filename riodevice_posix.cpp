@@ -137,3 +137,39 @@ void io_device::_writeBuffer(const io_resource* context,const void* buffer,size_
         _byteCount = 0;
     }
 }
+
+// rtypes::io_stream
+bool io_stream::_inDevice() const
+{
+    char buffer[4096];
+    _device->read(buffer,4096);
+    if (_device->get_last_operation_status() == success_read)
+    {
+        _bufIn.push_range(buffer,_device->get_last_byte_count());
+        return true;
+    }
+    return false;
+}
+void io_stream::_outDevice()
+{
+    _device->write(&_bufOut.peek(),_bufOut.size());
+    _bufOut.clear();
+}
+
+// rtypes::binary_io_stream
+bool binary_io_stream::_inDevice() const
+{
+    char buffer[4096];
+    _device->read(buffer,4096);
+    if (_device->get_last_operation_status() == success_read)
+    {
+        _bufIn.push_range(buffer,_device->get_last_byte_count());
+        return true;
+    }
+    return false;
+}
+void binary_io_stream::_outDevice()
+{
+    _device->write(&_bufOut.peek(),_bufOut.size());
+    _bufOut.clear();
+}

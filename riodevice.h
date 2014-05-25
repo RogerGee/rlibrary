@@ -110,7 +110,7 @@ namespace rtypes
         // copy operations reserved for derived classes for strict type enforcement;
         // the user should redirect to assign a device that's of a different type
         io_device(const io_device&); // creates a copy of the current IO context of the specified device
-        io_device& operator =(const io_device&); // unimplemented; disallow assignments like this
+        io_device& operator =(const io_device&); // base class version left unimplemented (derived classes can use _assign to implement operator =)
         io_device& _assign(const io_device&); // creates a copy of the current IO context of the specified device
         io_device& _assign(io_resource* inputContext,io_resource* outputContext);
 
@@ -153,6 +153,55 @@ namespace rtypes
             uint32 argumentCount = 0) = 0; // opens a device in a system specific manner
         virtual void _readAll(generic_string& buffer) const = 0; // reads all available data from the device into the specified buffer, resizing as necessary
         virtual void _closeEvent(io_access_flag shutdownKind) = 0; // called whenever a device is completely shutdown
+    };
+
+    /* io_stream_device
+     *  base class for generic io_device stream device interfaces
+     */
+    class io_stream_device : public generic_stream_device<io_device>
+    {
+    public:
+        io_stream_device();
+        io_stream_device(io_device&);
+    private:
+        virtual void _clearDevice();
+        virtual bool _openDevice(const char* deviceID);
+        virtual void _closeDevice();
+    };
+
+    /* io_stream
+     *  provides a generic rstream interface for io_device objects; this
+     * type may be used in conjunction with the streams provided for each
+     * io_device derivation
+     */
+    class io_stream : public rstream,
+                      public io_stream_device
+    {
+    public:
+        io_stream();
+        io_stream(io_device& device);
+        ~io_stream();
+    private:
+        bool _inDevice() const; // [sys]
+        void _outDevice(); // [sys]
+    };
+
+    /* binary_io_stream
+     *  provides a generic rbinstream interface for io_device objects; this
+     * type may be used in conjunction with the streams provided for each io_device
+     * derivation
+     */
+    class binary_io_stream : public rbinstream,
+                             public io_stream_device
+    {
+    public:
+        binary_io_stream();
+        binary_io_stream(io_device& device);
+        binary_io_stream(endianness endianFlag);
+        ~binary_io_stream();
+    private:
+        bool _inDevice() const; // [sys]
+        void _outDevice(); // [sys]
     };
 }
 

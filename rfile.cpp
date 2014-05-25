@@ -27,6 +27,12 @@ file::file(const char* fileName,file_open_mode mode)
 {
     open(fileName,mode);
 }
+file& file::operator =(const file& obj)
+{
+    if (this != &obj)
+        _assign(obj);
+    return *this;
+}
 bool file::open(const char* fileName,file_open_mode mode)
 {
     void* args[1];

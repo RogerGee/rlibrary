@@ -27,7 +27,7 @@ namespace {
         { return param.get_device(); }
         int as_int() const;
     private:
-        mutable rstringstream param;
+        mutable stringstream param;
     };
 
     param_item::param_item()
@@ -67,7 +67,7 @@ namespace {
         return i;
     }
 
-    str get_sequence_recursive(const_rstringstream& ss,stack<param_item>& st,const char* const* const parameters,int count)
+    str get_sequence_recursive(const_stringstream& ss,stack<param_item>& st,const char* const* const parameters,int count)
     {
         /* this function recursively resolves parameterized terminfo strings; at the end of
          *  each frame, a value is pushed back that indicates whether or not the end of either
@@ -75,7 +75,7 @@ namespace {
          */
         int add = 0; /* how many times to "add 1" to each parameter pushed */
         bool cond = false; /* is this frame the original conditional context? */
-        rstringstream result; /* store the result */
+        stringstream result; /* store the result */
         while ( ss.has_input() )
         {
             char c = ss.get();
@@ -241,7 +241,7 @@ terminfo_sequence::terminfo_sequence(const str& source)
 str terminfo_sequence::get_sequence(const char* const* const parameters,int count) const
 {
     stack<param_item> st;
-    const_rstringstream ss(_sequence);
+    const_stringstream ss(_sequence);
     return get_sequence_recursive(ss,st,parameters,count);
 }
 

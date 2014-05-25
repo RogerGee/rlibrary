@@ -158,7 +158,9 @@ bool file_stream::_inDevice() const
 }
 void file_stream::_outDevice()
 {
-    _device->set_file_pointer(_odeviceIter);
+    try {
+        _device->set_file_pointer(_odeviceIter);
+    } catch (object_not_initialized_error&) {}
     _device->write(&_bufOut.peek(),_bufOut.size());
     _odeviceIter += _bufOut.size();
     _bufOut.clear();
@@ -180,7 +182,9 @@ bool file_binary_stream::_inDevice() const
 }
 void file_binary_stream::_outDevice()
 {
-    _device->set_file_pointer(_odeviceIter);
+    try {
+        _device->set_file_pointer(_odeviceIter);
+    } catch (object_not_initialized_error&) {}
     _device->write(&_bufOut.peek(),_bufOut.size());
     _odeviceIter += _bufOut.size();
     _bufOut.clear();

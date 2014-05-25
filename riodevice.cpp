@@ -363,3 +363,58 @@ bool io_device::_openOutputWithArgs(const char* deviceID,void** arguments,uint32
 {
     return pres->_reference;
 }
+
+// rtypes::io_stream_device
+io_stream_device::io_stream_device()
+{ // allow default construction
+}
+io_stream_device::io_stream_device(io_device& device)
+    : generic_stream_device<io_device>(device)
+{
+}
+void io_stream_device::_clearDevice()
+{
+    // no implementation available
+}
+bool io_stream_device::_openDevice(const char* deviceID)
+{
+    return _device->open(deviceID);
+}
+void io_stream_device::_closeDevice()
+{
+    _device->close();
+}
+
+// rtypes::io_stream
+io_stream::io_stream()
+{ // allow default construction
+}
+io_stream::io_stream(io_device& device)
+    : io_stream_device(device)
+{
+}
+io_stream::~io_stream()
+{
+    // complete rstream behavior by performing
+    // virtual function call
+    _outDevice();
+}
+
+// rtypes::binary_io_stream
+binary_io_stream::binary_io_stream()
+{ // allow default construction
+}
+binary_io_stream::binary_io_stream(io_device& device)
+    : io_stream_device(device)
+{
+}
+binary_io_stream::binary_io_stream(endianness endianFlag)
+    : rbinstream(endianFlag)
+{
+}
+binary_io_stream::~binary_io_stream()
+{
+    // complete rstream behavior by performing
+    // virtual function call
+    _outDevice();
+}

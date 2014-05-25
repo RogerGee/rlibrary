@@ -11,63 +11,137 @@
 
 namespace rtypes
 {
-    class rstringstream : public rstream, public stream_device<str,generic_string>
+    class stringstream_io : public rstream
     {
     public:
-        rstringstream();
-        rstringstream(const char* initialValue);
-        rstringstream(generic_string& strDevice);
-        ~rstringstream();
+        stringstream_io();
+    protected:
+        bool _inDeviceImpl(const generic_string* device) const;
+        void _outDeviceImpl(generic_string* device);
+    };
+    class binstringstream_io : public rbinstream
+    {
+    public:
+        binstringstream_io();
+        binstringstream_io(endianness);
+    protected:
+        bool _inDeviceImpl(const generic_string* device) const;
+        void _outDeviceImpl(generic_string* device);
+    };
+
+    class string_stream_device : public stream_device<str,generic_string>
+    {
+    public:
+        string_stream_device() {}
+        string_stream_device(generic_string& strDevice)
+            : stream_device<str,generic_string>(strDevice) {}
     private:
         virtual void _clearDevice();
         virtual bool _openDevice(const char*);
         virtual void _closeDevice();
-                
-        virtual bool _inDevice() const;
-        virtual void _outDevice();
     };
-
-    class const_rstringstream : public rstream, public const_stream_device<generic_string>
+    class generic_string_stream_device : public generic_stream_device<generic_string>
     {
     public:
-        const_rstringstream();
-        const_rstringstream(const generic_string& strDevice);
+        generic_string_stream_device() {}
+        generic_string_stream_device(generic_string& strDevice)
+            : generic_stream_device<generic_string>(strDevice) {}
+    private:
+        virtual void _clearDevice();
+        virtual bool _openDevice(const char*);
+        virtual void _closeDevice();
+    };
+    class const_string_stream_device : public const_stream_device<generic_string>
+    {
+    public:
+        const_string_stream_device() {}
+        const_string_stream_device(const generic_string& strDevice)
+            : const_stream_device<generic_string>(strDevice) {}
     private:
         virtual bool _openDevice(generic_string*,const char*);
         virtual void _closeDevice();
-        
-        virtual bool _inDevice() const;
+    };
+
+    class stringstream : public stringstream_io,
+                         public string_stream_device
+    {
+    public:
+        stringstream();
+        stringstream(const char* initialValue);
+        stringstream(generic_string& strDevice);
+        ~stringstream();
+    private:
+        virtual bool _inDevice() const
+        { return _inDeviceImpl(_device); }
+        virtual void _outDevice()
+        { _outDeviceImpl(_device); }
+    };
+
+    class ref_stringstream : public stringstream_io,
+                             public generic_string_stream_device
+    {
+        ref_stringstream();
+        ref_stringstream(generic_string& strDevice);
+        ~ref_stringstream();
+    private:
+        virtual bool _inDevice() const
+        { return _inDeviceImpl(_device); }
+        virtual void _outDevice()
+        { _outDeviceImpl(_device); }
+    };
+
+    class const_stringstream : public stringstream_io,
+                               public const_string_stream_device
+    {
+    public:
+        const_stringstream();
+        const_stringstream(const generic_string& strDevice);
+    private:
+        virtual bool _inDevice() const
+        { return _inDeviceImpl(_device); }
         virtual void _outDevice() {} // not allowed
     };
-        
-    class rbinstringstream : public rbinstream, public stream_device<str,generic_string>
+
+    class binstringstream : public binstringstream_io,
+                            public string_stream_device
     {
     public:
-        rbinstringstream();
-        rbinstringstream(const char* initialValue);
-        rbinstringstream(generic_string& strDevice);
-        rbinstringstream(endianness endianFlag);
-        ~rbinstringstream();
+        binstringstream();
+        binstringstream(const char* initialValue);
+        binstringstream(generic_string& strDevice);
+        binstringstream(endianness endianFlag);
+        ~binstringstream();
     private:
-        virtual void _clearDevice();
-        virtual bool _openDevice(const char*);
-        virtual void _closeDevice();
-                
-        virtual bool _inDevice() const;
-        virtual void _outDevice();
+        virtual bool _inDevice() const
+        { return _inDeviceImpl(_device); }
+        virtual void _outDevice()
+        { _outDeviceImpl(_device); }
     };
 
-    class const_rbinstringstream : public rbinstream, public const_stream_device<generic_string>
+    class ref_binstringstream : public binstringstream_io,
+                                public generic_string_stream_device
+    {
+        ref_binstringstream();
+        ref_binstringstream(generic_string& strDevice);
+        ref_binstringstream(endianness endianFlag);
+        ~ref_binstringstream();
+    private:
+        virtual bool _inDevice() const
+        { return _inDeviceImpl(_device); }
+        virtual void _outDevice()
+        { _outDeviceImpl(_device); }
+    };
+
+    class const_binstringstream : public binstringstream_io,
+                                  public const_string_stream_device
     {
     public:
-        const_rbinstringstream();
-        const_rbinstringstream(const generic_string& strDevice);
-        const_rbinstringstream(endianness endianFlag);
+        const_binstringstream();
+        const_binstringstream(const generic_string& strDevice);
+        const_binstringstream(endianness endianFlag);
     private:
-        virtual bool _openDevice(generic_string*,const char*);
-        virtual void _closeDevice();
-
-        virtual bool _inDevice() const;
+        virtual bool _inDevice() const
+        { return _inDeviceImpl(_device); }
         virtual void _outDevice() {} // not allowed
     };
 }
