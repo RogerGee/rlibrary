@@ -80,6 +80,7 @@ namespace rtypes
     class ref_stringstream : public stringstream_io,
                              public generic_string_stream_device
     {
+    public:
         ref_stringstream();
         ref_stringstream(generic_string& strDevice);
         ~ref_stringstream();
@@ -121,6 +122,7 @@ namespace rtypes
     class ref_binstringstream : public binstringstream_io,
                                 public generic_string_stream_device
     {
+    public:
         ref_binstringstream();
         ref_binstringstream(generic_string& strDevice);
         ref_binstringstream(endianness endianFlag);

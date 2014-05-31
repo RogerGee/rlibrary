@@ -211,6 +211,9 @@ namespace rtypes
         char fill() const
         { return _fill; }
         char fill(char fillChar);
+        numeric_representation representation() const
+        { return _repFlag; }
+        numeric_representation representation(numeric_representation);
 
         // get string delimited by endline (does not include endline character(s))
         void getline(generic_string&);

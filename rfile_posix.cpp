@@ -146,7 +146,9 @@ void file::_openEvent(const char* deviceID,io_access_flag accessKind,io_resource
 bool file_stream::_inDevice() const
 {
     char buffer[4096];
-    _device->set_file_pointer(_ideviceIter);
+    try {
+        _device->set_file_pointer(_ideviceIter);
+    } catch (object_not_initialized_error&) {}
     _device->read(buffer,4096);
     if (_device->get_last_operation_status() == success_read)
     {
@@ -170,7 +172,9 @@ void file_stream::_outDevice()
 bool file_binary_stream::_inDevice() const
 {
     char buffer[4096];
-    _device->set_file_pointer(_ideviceIter);
+    try {
+        _device->set_file_pointer(_ideviceIter);
+    } catch (object_not_initialized_error&) {}
     _device->read(buffer,4096);
     if (_device->get_last_operation_status() == success_read)
     {

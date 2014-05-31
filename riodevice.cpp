@@ -397,7 +397,8 @@ io_stream::~io_stream()
 {
     // complete rstream behavior by performing
     // virtual function call
-    _outDevice();
+    if ( !_bufOut.is_empty() )
+        _outDevice();
 }
 
 // rtypes::binary_io_stream
@@ -416,5 +417,6 @@ binary_io_stream::~binary_io_stream()
 {
     // complete rstream behavior by performing
     // virtual function call
-    _outDevice();
+    if ( !_bufOut.is_empty() )
+        _outDevice();
 }

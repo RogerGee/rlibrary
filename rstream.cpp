@@ -236,6 +236,12 @@ char rstream::fill(char fillChar)
     _fill = fillChar;
     return tmp;
 }
+numeric_representation rstream::representation(numeric_representation rep)
+{
+    numeric_representation tmp = _repFlag;
+    _repFlag = rep;
+    return tmp;
+}
 void rstream::getline(generic_string& var)
 {
     var.clear();

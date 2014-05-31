@@ -9,7 +9,7 @@ stringstream_io::stringstream_io()
 bool stringstream_io::_inDeviceImpl(const generic_string* device) const
 {
     // place all available bytes from the string into the buffer
-    if (_ideviceIter < device->length())
+    if (device!=NULL && _ideviceIter<device->length())
     {
         while (_ideviceIter < device->length())
             _bufIn.push( device->operator[](_ideviceIter++) );
@@ -19,13 +19,16 @@ bool stringstream_io::_inDeviceImpl(const generic_string* device) const
 }
 void stringstream_io::_outDeviceImpl(generic_string* device)
 {
-    const char* data = &_bufOut.peek();
-    for (uint32 i = 0;i<_bufOut.size();i++,_odeviceIter++)
-        if (_odeviceIter < device->length()) // replace existing character
-            device->operator[](_odeviceIter) = data[i];
-        else // grow the string
-            device->push_back(data[i]);
-    _bufOut.pop_range( _bufOut.size() );
+    if (device != NULL)
+    {
+        const char* data = &_bufOut.peek();
+        for (uint32 i = 0;i<_bufOut.size();i++,_odeviceIter++)
+            if (_odeviceIter < device->length()) // replace existing character
+                device->operator[](_odeviceIter) = data[i];
+            else // grow the string
+                device->push_back(data[i]);
+        _bufOut.pop_range( _bufOut.size() );
+    }
 }
 
 binstringstream_io::binstringstream_io()
@@ -75,13 +78,18 @@ void string_stream_device::_closeDevice()
 
 void generic_string_stream_device::_clearDevice()
 {
-    _device->clear();
+    if (_device != NULL)
+        _device->clear();
 }
 bool generic_string_stream_device::_openDevice(const char* deviceID)
 {
-    *_device = deviceID;
-    _odeviceIter = _device->length(); // open for appending
-    return true; // always succeeds
+    if (_device != NULL)
+    {
+        *_device = deviceID;
+        _odeviceIter = _device->length(); // open for appending
+        return true; // always succeeds
+    }
+    return false;
 }
 void generic_string_stream_device::_closeDevice()
 { // a string doesn't have any close action
