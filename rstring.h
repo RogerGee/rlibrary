@@ -8,8 +8,7 @@
 namespace rtypes
 {
     /* rtype_string
-     *  provides abstract interface and
-     * implementation for rlibrary strings
+     *  provides abstract interface and implementation for rlibrary strings
      */
     template<typename CharType>
     class rtype_string
@@ -93,8 +92,12 @@ namespace rtypes
     };
 
     /* deep_string
-     *  represents a string that performs a deep
-     * copy of its internal string buffer
+     *  represents a string that performs a deep copy of its internal string buffer; this
+     * means that the string by default implements value semantics under normal usage;
+     * these strings typically are more efficient and use less memory than their shallow string
+     * counterparts; deep strings are used exclusively in the implementation of rlibrary, however
+     * base class (rtype_string) references are used in read expressions (e.g. function parameters)
+     * to maintain compatibility with shallow string types
      */
     template<typename CharType>
     class deep_string : public rtype_string<CharType>
@@ -128,6 +131,13 @@ namespace rtypes
         typename _Base::_StringBuffer _buf;
     };
 
+    /* shallow_string
+     *  represents a string that performs a shallow copy of its internal buffer
+     * and a deep copy on write (copy on write); this string type is available
+     * for use in cases where default reference semantics are required/desired;
+     * rlibrary does not typically provide such strings in its public interface
+     * or implementation
+     */
     template<typename CharType>
     class shallow_string : public rtype_string<CharType>
     {
@@ -218,15 +228,16 @@ namespace rtypes
     template<typename CharType>
     deep_string<CharType> operator +(const CharType*,const rtype_string<CharType>&);
 
-    // typedefs for common string types
-    typedef deep_string<char> str;
-    typedef deep_string<wchar_t> wstr;
-    typedef shallow_string<char> string;
-    typedef shallow_string<wchar_t> wstring;
-
-    // typedefs for generic common string types
-    typedef rtype_string<char> generic_string;
+    /* typedefs for common deep-string string types (both normal and wide characters are supported);
+       users are encouraged to use these instead of the shallow_string types, especially in multi-
+       threaded code */
+    typedef rtype_string<char> generic_string; // generic string types
     typedef rtype_string<wchar_t> generic_wstring;
+    typedef deep_string<char> str; // original rlibrary standard string types
+    typedef deep_string<wchar_t> wstr;
+    typedef str string; // alternates for original standard string types
+    typedef wstr wstring;
+
 }
 
 // include out-of-line implementation

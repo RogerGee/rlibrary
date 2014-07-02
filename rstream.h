@@ -196,9 +196,9 @@ namespace rtypes
         void remove_extra_delimiter(const generic_string& delimiterString);
         void clear_extra_delimiters();
         bool delimit_whitespace(bool yes);
-        string get_last_delimited_space() const
+        str get_last_delimited_space() const
         { return _delimStrLast; }
-        string get_active_delimited_space() const
+        str get_active_delimited_space() const
         { return _delimStrActive; }
 
         // stream manipulation
@@ -259,7 +259,7 @@ namespace rtypes
     private:
         bool _delimitWhitespace; // determines if whitespace is used as a delimiter
         set<char> _delimits; // active delimiters not including whitespace
-        mutable string _delimStrActive, _delimStrLast;
+        mutable str _delimStrActive, _delimStrLast;
 
         // manipulator fields
         uint16 _width;
@@ -423,7 +423,8 @@ namespace rtypes
 
         void clear()
         {
-            _clearDevice();
+            if (_device != NULL)
+                _clearDevice();
             // reset iterators for accurate reporting
             _ideviceIter = 0;
             _odeviceIter = 0;

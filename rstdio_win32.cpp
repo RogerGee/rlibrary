@@ -57,12 +57,9 @@ void standard_device::_openEvent(const char*,io_access_flag kind,io_resource** p
 // rtypes::standard_stream
 bool standard_stream::_inDevice() const
 {
-    /* An rstream uses \n only to
-     * represent end lines; any \r
-     * octet is dropped from the input
-     * stream. This way, blocks can be
-     * read in efficiently in case the 
-     * underlying device has a lot of
+    /* An rstream uses \n only to represent end lines; any \r
+     * octet is dropped from the input stream. This way, blocks can be
+     * read in efficiently in case the underlying device has a lot of
      * data.
      */
     uint32 i;
@@ -86,10 +83,8 @@ bool standard_stream::_inDevice() const
 }
 void standard_stream::_outDevice()
 {
-    /* On Windows, the \r\n endline
-     * encoding is commonly used on many
-     * devices. Therefore, all \n characters
-     * are translated into the sequence \r\n.
+    /* On Windows, the \r\n endline encoding is commonly used on many devices.
+     * Therefore, all \n characters are translated into the sequence \r\n.
      */
     uint32 iter = 0;
     const char* pbuffer = &_bufOut.peek();
@@ -101,7 +96,7 @@ void standard_stream::_outDevice()
     while (true)
     {
         uint32 length = 0;
-        while (iter<_bufOut.size() && pbuffer[length] != '\n')
+        while (iter<_bufOut.size() && pbuffer[length]!='\n' && (length==0 || pbuffer[length-1]!='\r'))
             ++length, ++iter;
         (_device->*pwrite)(pbuffer,length);
         if (iter >= _bufOut.size())

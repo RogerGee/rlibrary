@@ -1,7 +1,7 @@
 #include "rutility.h"
 using namespace rtypes;
 
-char* rtypes::rutil_strcpy(char* buffer,const char* source)
+size_type rtypes::rutil_strcpy(char* buffer,const char* source)
 {
     size_type i = 0;
     while (true)
@@ -11,5 +11,5 @@ char* rtypes::rutil_strcpy(char* buffer,const char* source)
             break;
         ++i;
     }
-    return buffer;
+    return i;
 }

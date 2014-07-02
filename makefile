@@ -8,7 +8,7 @@ include rlibrary-build-vars.mk
 
 # object file lists
 # (rlibrary/utility)
-UTILITY_OBJ_files = $(addprefix $(OBJDIR)/,rutil_def_memory.o rutil_strcmp.o rutil_strlen.o rutil_strcpy.o rutil_strncpy.o rutil_to_lower.o rutil_to_upper.o rutil_strip_whitespace.o)
+UTILITY_OBJ_files = $(addprefix $(OBJDIR)/,rutil_def_memory.o rutil_strcmp.o rutil_strncmp.o rutil_strlen.o rutil_strcpy.o rutil_strncpy.o rutil_to_lower.o rutil_to_upper.o rutil_strip_whitespace.o)
 # (rlibrary/integration)
 INTEGRATION_OBJ_files = $(addprefix $(OBJDIR)/,rintrg_ostream_str.o rintrg_istream_str.o)
 # (rlibrary/impl)
@@ -53,7 +53,7 @@ $(OBJDIR)/rfile.o: rfile.cpp rfile_posix.cpp $(RFILE_H) $(RLASTERR_H)
 	$(BUILD_OBJ) $(OBJ_OUT)rfile.o rfile.cpp -D RLIBRARY_BUILD_POSIX
 
 # build other components of the library in subdirectories
-$(UTILITY_OBJ_files): utility/*.cpp
+$(UTILITY_OBJ_files): utility/*.cpp $(RUTILITY_H)
 	make -C utility
 
 $(INTEGRATION_OBJ_files): integration/*.cpp

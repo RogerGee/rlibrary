@@ -157,7 +157,7 @@ namespace rtypes
 
             dynamic_array<bool> _booleanCaps;
             dynamic_array<uint16> _numericCaps;
-            dynamic_array<string> _stringCaps;
+            dynamic_array<str> _stringCaps;
 
             bool _read(rbinstream&);
         };

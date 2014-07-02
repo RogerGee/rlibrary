@@ -170,17 +170,16 @@ void io_stream::_outDevice()
 {
     if (_device != NULL)
     {
-        /* On Windows, the \r\n endline
-         * encoding is commonly used on many
-         * devices. Therefore, all \n characters
-         * are translated into the sequence \r\n.
+        /* On Windows, the \r\n endline encoding is commonly used on many
+         * devices. Therefore, all \n characters are translated into the
+         * sequence \r\n given that no preceding \r was found.
          */
         uint32 iter = 0;
         const char* pbuffer = &_bufOut.peek();
         while (true)
         {
             uint32 length = 0;
-            while (iter<_bufOut.size() && pbuffer[length] != '\n')
+            while (iter<_bufOut.size() && pbuffer[length]!='\n' && (length==0 || pbuffer[length-1]!='\r'))
                 ++length, ++iter;
             _device->write(pbuffer,length);
             if (iter >= _bufOut.size())

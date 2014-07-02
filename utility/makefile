@@ -11,13 +11,16 @@ PREV_OBJ_OUT = -o $(POD)/
 
 BUILD_OBJ := $(BUILD_OBJ) -I..
 
-all: $(POD)/rutil_def_memory.o $(POD)/rutil_strcmp.o $(POD)/rutil_strlen.o $(POD)/rutil_strcpy.o $(POD)/rutil_strncpy.o $(POD)/rutil_to_lower.o $(POD)/rutil_to_upper.o $(POD)/rutil_strip_whitespace.o
+all: $(POD)/rutil_def_memory.o $(POD)/rutil_strcmp.o $(POD)/rutil_strncmp.o $(POD)/rutil_strlen.o $(POD)/rutil_strcpy.o $(POD)/rutil_strncpy.o $(POD)/rutil_to_lower.o $(POD)/rutil_to_upper.o $(POD)/rutil_strip_whitespace.o
 
 $(POD)/rutil_def_memory.o: rutil_def_memory.cpp $(DEPENDS)
 	$(BUILD_OBJ) $(PREV_OBJ_OUT)rutil_def_memory.o rutil_def_memory.cpp
 
 $(POD)/rutil_strcmp.o: rutil_strcmp.cpp $(DEPENDS)
 	$(BUILD_OBJ) $(PREV_OBJ_OUT)rutil_strcmp.o rutil_strcmp.cpp
+
+$(POD)/rutil_strncmp.o: rutil_strncmp.cpp $(DEPENDS)
+	$(BUILD_OBJ) $(PREV_OBJ_OUT)rutil_strncmp.o rutil_strncmp.cpp
 
 $(POD)/rutil_strlen.o: rutil_strlen.cpp $(DEPENDS)
 	$(BUILD_OBJ) $(PREV_OBJ_OUT)rutil_strlen.o rutil_strlen.cpp

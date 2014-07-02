@@ -349,7 +349,7 @@ bool terminfo::_read(rbinstream& bstream)
         // read string capabilities
         for (uint16 i = 0;i<offs;i++)
         {
-            string& elem = ++_stringCaps;
+            str& elem = ++_stringCaps;
             if (offsets[i] != 0xffff)
             {
                 stdConsole << '[' << offsets[i] << "]\n";
