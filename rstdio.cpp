@@ -5,16 +5,14 @@
  */
 #include "rstdio.h"
 #include "rutility.h"
+using namespace rtypes;
 
 // define target-specific code
-//  -> Gets: 'using namespace rtypes'
 
 #if defined (RLIBRARY_BUILD_POSIX)
 #include "rstdio_posix.cpp"
 #elif defined(RLIBRARY_BUILD_WIN32)
 #include "rstdio_win32.cpp"
-#else
-using namespace rtypes;
 #endif
 
 // define target-independent code

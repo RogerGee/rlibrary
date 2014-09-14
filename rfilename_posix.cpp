@@ -12,7 +12,6 @@
 #include <dirent.h>
 #include <errno.h>
 #include <stdio.h>
-using namespace rtypes;
 
 static const char PATH_SEP = '/';
 

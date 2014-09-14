@@ -4,7 +4,6 @@
 
 // include POSIX and other system headers
 #include <unistd.h>
-using namespace rtypes;
 
 // rtypes::io_resource
 io_resource::io_resource(bool closable)

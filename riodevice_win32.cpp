@@ -4,7 +4,6 @@
 
 // include Windows API headers
 #include <Windows.h>
-using namespace rtypes;
 
 // rtypes::io_resource
 io_resource::io_resource(bool closable)

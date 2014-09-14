@@ -4,7 +4,6 @@
 
 // include Windows API headers
 #include <Windows.h>
-using namespace rtypes;
 
 // Windows supports both kinds of path separators, however
 // I'll opt to use this one because it's most commonly

@@ -3,7 +3,6 @@
  */
 
 #include <Windows.h>
-using namespace rtypes;
 
 /* static */ void rlib_last_error::switch_set()
 {

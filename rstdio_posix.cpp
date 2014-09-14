@@ -4,7 +4,6 @@
 
 // include system headers
 #include <unistd.h>
-using namespace rtypes;
 
 // rtypes::standard_device
 bool standard_device::open_error(const char*)

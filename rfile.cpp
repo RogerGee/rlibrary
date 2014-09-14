@@ -5,22 +5,23 @@
  */
 #include "rfile.h"
 #include "rlasterr.h"
+using namespace rtypes;
 
 // define target-specific code
-// -> gets `using namespace rtypes;'
-
 #if defined(RLIBRARY_BUILD_POSIX)
 #include "rfile_posix.cpp"
 #elif defined(RLIBRARY_BUILD_WIN32)
 #include "rfile_win32.cpp"
-#else
-using namespace rtypes;
 #endif
 
 // define target-independent code
 
 // rtypes::file
 file::file()
+{
+}
+file::file(const file& device)
+    : io_device(device)
 {
 }
 file::file(const char* fileName,file_open_mode mode)

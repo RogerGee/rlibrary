@@ -6,23 +6,21 @@
 #include "riodevice.h"
 #include "rlasterr.h"
 #include "rutility.h"
+using namespace rtypes;
 
 // define target-independent constants
 
 // create invalid IO resource constant;
 // the default constructor will initialize
 // this to the proper value
-static const rtypes::io_resource INVALID_RESOURCE;
+static const io_resource INVALID_RESOURCE;
 
 // define target-specific code
-//  -> Gets: 'using namespace rtypes'
 
 #if defined(RLIBRARY_BUILD_POSIX)
 #include "riodevice_posix.cpp"
 #elif defined(RLIBRARY_BUILD_WIN32)
 #include "riodevice_win32.cpp"
-#else
-using namespace rtypes;
 #endif
 
 // define target-independent code

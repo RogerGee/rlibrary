@@ -6,6 +6,7 @@
 #include "rfilename.h" // gets rfilemode.h
 #include "rutility.h"
 #include "rlasterr.h" // gets rerror.h
+using namespace rtypes;
 
 // define constants
 const char* const CUR_DIR = ".";
@@ -13,14 +14,11 @@ const char* const PREV_DIR = "..";
 
 // define target-specific code
 //  -> Gets: 'PATH_SEP'
-//  -> Imports: 'using namespace rtypes'
 
 #if defined(RLIBRARY_BUILD_POSIX)
 #include "rfilename_posix.cpp"
 #elif defined(RLIBRARY_BUILD_WIN32)
 #include "rfilename_win32.cpp"
-#else
-using namespace rtypes; // import names
 #endif
 
 // define target-independent code

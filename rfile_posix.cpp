@@ -2,7 +2,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-using namespace rtypes;
 
 // rtypes::file
 offset_type file::get_file_pointer() const

@@ -9,6 +9,9 @@
 
 namespace rtypes
 {
+    /* offset typedefs
+     *  use these for specifying offset values
+     */
     typedef uint64 offset_type;
     typedef int64 offset_seek_type;
 
@@ -21,6 +24,7 @@ namespace rtypes
     {
     public:
         file();
+        file(const file& device);
         file(const char* fileName,file_open_mode mode = file_open_always);
 
         file& operator =(const file&);
