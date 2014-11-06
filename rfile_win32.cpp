@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 // rfile_win32.cpp - implements rlibrary/rfile using the Windows API
 #include <Windows.h>
 

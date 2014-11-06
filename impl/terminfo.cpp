@@ -1,7 +1,6 @@
 // terminfo.cpp
 #include "terminfo.h"
 #include "rstack.h"
-#include "rstdio.h"
 #include "rstringstream.h"
 #include "rfilename.h"
 #include "rfile.h"
@@ -349,12 +348,13 @@ bool terminfo::_read(rbinstream& bstream)
         // read string capabilities
         for (uint16 i = 0;i<offs;i++)
         {
+            // we must load a cap for each capability (up to the max offset)
+            // so that we can determine which capabilities are determined by
+            // the terminal type
             str& elem = ++_stringCaps;
             if (offsets[i] != 0xffff)
-            {
-                stdConsole << '[' << offsets[i] << "]\n";
                 bstream >> elem;
-            }
+            // else leave the capability empty
         }
         delete[] offsets;
         return true;

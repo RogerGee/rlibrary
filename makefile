@@ -1,5 +1,5 @@
 ################################################################################
-# Makefile that builds 'rlibrary' with Ubuntu/Linux targets                    #
+# Makefile that builds 'rlibrary' with Linux targets                           #
 ################################################################################
 .PHONY: install uninstall clean test
 
