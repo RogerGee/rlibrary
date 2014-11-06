@@ -19,7 +19,7 @@
     else if (err==ERROR_OUTOFMEMORY || err==ERROR_NOT_ENOUGH_MEMORY)
         set<out_of_memory_error>();
     else if (err == ERROR_BAD_ENVIRONMENT)
-        set<error_bad_environment>();
+        set<bad_environment_error>();
     // set undocumented error
     else
         _sysSet(err);

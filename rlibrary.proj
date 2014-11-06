@@ -18,11 +18,13 @@
 	
 	<ItemGroup>
 		<ClCompile Include="rstream.cpp" />
+		<ClCompile Include="rstreammanip.cpp" />
 		<ClCompile Include="rstringstream.cpp" />
 		<ClCompile Include="rfilename.cpp" />
 		<ClCompile Include="rlasterr.cpp" />
 		<ClCompile Include="riodevice.cpp" />
 		<ClCompile Include="rstdio.cpp" />
+		<ClCompile Include="rfile.cpp" />
 		<ClCompile Include="integration\*.cpp" />
 		<ClCompile Include="utility\*.cpp" />
 	</ItemGroup>
@@ -47,6 +49,7 @@
 		<ClCompile>
 			<WarningLevel>Level3</WarningLevel>
 			<Optimization>Disabled</Optimization>
+			<AdditionalIncludeDirectories>.</AdditionalIncludeDirectories>
 			<PreprocessorDefinitions>RLIBRARY_BUILD_WIN32</PreprocessorDefinitions>
 		</ClCompile>
 	</ItemDefinitionGroup>
@@ -57,6 +60,7 @@
 			<Optimization>MaxSpeed</Optimization>
 			<FunctionLevelLinking>true</FunctionLevelLinking>
 			<IntrinsicFunctions>true</IntrinsicFunctions>
+			<AdditionalIncludeDirectories>.</AdditionalIncludeDirectories>
 			<PreprocessorDefinitions>RLIBRARY_BUILD_WIN32</PreprocessorDefinitions>
 		</ClCompile>
 	</ItemDefinitionGroup>

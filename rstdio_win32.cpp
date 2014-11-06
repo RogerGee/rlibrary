@@ -3,6 +3,7 @@
  */
 
 // include Windows API headers
+#define WIN32_LEAN_AND_MEAN // exclude "byte" typedef that conflicts with rtypes::byte
 #include <Windows.h>
 
 // rtypes::standard_device
@@ -10,7 +11,8 @@ bool standard_device::open_error(const char*)
 {
     HANDLE hStdHandle;
     hStdHandle = ::GetStdHandle(STD_ERROR_HANDLE);
-    _error = new io_resource( reinterpret_cast<void*>(hStdHandle),false );
+    _error = new io_resource(false);
+    _error->assign(hStdHandle);
     return true;
 }
 bool standard_device::clear_screen()
@@ -35,7 +37,6 @@ bool standard_device::clear_screen()
 }
 void standard_device::_openEvent(const char*,io_access_flag kind,io_resource** pinput,io_resource** poutput,void**,uint32)
 {
-    HANDLE hStdHandle;
     if (kind & read_access)
     {
         *pinput = new io_resource(false);
@@ -87,11 +88,11 @@ void standard_stream::_outDevice()
      */
     uint32 iter = 0;
     const char* pbuffer = &_bufOut.peek();
-    void (standard_stream::* pwrite)(const char*,size_type);
+    void (standard_device::* pwrite)(const void*,size_type);
     if (_okind == out)
-        pwrite = &standard_stream::write;
+        pwrite = &standard_device::write;
     else
-        pwrite = &standard_stream::write_error;
+        pwrite = &standard_device::write_error;
     while (true)
     {
         uint32 length = 0;
@@ -100,7 +101,7 @@ void standard_stream::_outDevice()
         (_device->*pwrite)(pbuffer,length);
         if (iter >= _bufOut.size())
             break;
-        (_device->pwrite)("\r\n",2);
+        (_device->*pwrite)("\r\n",2);
         pbuffer += length+1;
         ++iter;
     }

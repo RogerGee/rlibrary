@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 // rfile_win32.cpp - implements rlibrary/rfile using the Windows API
 #include <Windows.h>
 
@@ -57,7 +58,7 @@ void file::_openEvent(const char* deviceID,io_access_flag accessKind,io_resource
     if (count>=1 && arguments!=NULL)
     {
         dwCreateDisposition = 0;
-        switch (file_open_mode(*arguments[0]))
+        switch (*reinterpret_cast<file_open_mode*>(arguments[0]))
         {
         case file_create_exclusively:
             dwCreateDisposition = CREATE_NEW;
