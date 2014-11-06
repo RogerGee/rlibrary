@@ -1,0 +1,41 @@
+rlibrary
+--------------------------------------------------------------------------------
+rlibrary is an educational project of mine to create a cross-platform I/O
+class library in C++. rlibrary draws a lot of its design on both the C and C++
+standard libraries. The library also provides data structures and useful
+utility functions.
+
+rlibrary is currently in an unfinished but workable state. Again, this project
+merely started out as an education project of mine. The library isn't designed
+to be used for production though I do target it in several of my other projects.
+--------------------------------------------------------------------------------
+Things the library currently supports:
+       generic IO device library
+       generic IO stream library
+       standard IO device and stream library
+       file IO device and stream library (partially finished)
+       string data type
+       filename parsing library
+       primitive exception typing
+       several core data structures
+--------------------------------------------------------------------------------
+Things the library is going to, but does not currently support:
+       pipes
+       consoles
+       threading
+       sockets
+       process management
+       process environment modification
+       several core data structures haven't been added yet
+--------------------------------------------------------------------------------
+Building rlibrary - to build the library for POSIX platforms, run GNU Make on
+the project makefile. To build it for Win32 platforms, run the MSBuild script.
+
+Both scripts should produce a static library against which programs can be
+linked.
+--------------------------------------------------------------------------------
+Using the headers - installing the headers in a system directory is recommended.
+The makefile also comes with a standard 'install' rule that copies them to the
+local header include directory on Linux boxes.
+
+Every (mostly) rlibrary name is a member of namespace 'rtypes'.
