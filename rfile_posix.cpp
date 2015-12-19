@@ -135,7 +135,7 @@ void file::_openEvent(const char* deviceID,io_access_flag accessKind,io_resource
         }
         if (accessKind & write_access)
         {
-            *poutput = new io_resource(*pinput == NULL);
+            *poutput = new io_resource(pinput==NULL || *pinput==NULL);
             (*poutput)->assign(fd);
         }
     }

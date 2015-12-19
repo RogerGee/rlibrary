@@ -1318,6 +1318,8 @@ rbinstream& rbinstream::operator <<(const char* cs)
 rbinstream& rbinstream::operator <<(const generic_string& s)
 {
     _pushBackOutputString(s);
+    if (_stringInputFormat == binary_string_null_terminated)
+        _pushBackOutput(0);
     if ( !does_buffer_output() )
         _outDevice();
     return *this;
