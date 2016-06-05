@@ -1311,6 +1311,8 @@ rbinstream& rbinstream::operator <<(const char* cs)
     size_type i = 0;
     while ( cs[i] )
         _pushBackOutput( cs[i++] );
+    if (_stringInputFormat == binary_string_null_terminated)
+        _pushBackOutput(0);
     if ( !does_buffer_output() )
         _outDevice();
     return *this;
