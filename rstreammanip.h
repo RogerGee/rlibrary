@@ -42,12 +42,18 @@ namespace rtypes
     class _rstream_flush_manipulator : public rstream_manipulator,
                                        public rbinstream_manipulator
     {
+    public:
+        _rstream_flush_manipulator() {}
+    private:
         virtual void operation(rstream& stream) const;
         virtual void operation(rbinstream& stream) const;
     };
 
     class _rstream_endflush_manipulator : public rstream_manipulator
     {
+    public:
+        _rstream_endflush_manipulator() {}
+    private:
         virtual void operation(rstream& stream) const;
     };
 

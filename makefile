@@ -71,13 +71,13 @@ $(LIBDIR):
 # install the library by copying the headers
 # and the library file to the system local directory
 install: $(LOCINCDIR)
-	cp --verbose $(LIB_rlibrary) /usr/local/lib
-	cp --verbose *.h $(LOCINCDIR)
-	cp --verbose *.tcc $(LOCINCDIR)
+	cp -v $(LIB_rlibrary) /usr/local/lib
+	cp -v *.h $(LOCINCDIR)
+	cp -v *.tcc $(LOCINCDIR)
 
 uninstall:
-	rm --verbose /usr/local/lib/$(LIB_rlibrary_name)
-	rm --verbose -rf $(LOCINCDIR)
+	rm -v /usr/local/lib/$(LIB_rlibrary_name)
+	rm -v -rf $(LOCINCDIR)
 
 # create the directory in which the rlibrary headers
 # are to be placed
@@ -85,8 +85,8 @@ $(LOCINCDIR):
 	mkdir -p $(LOCINCDIR)
 
 clean:
-	rm --verbose $(OBJDIR)/*.o
-	rm --verbose $(LIB_rlibrary)
+	rm -v $(OBJDIR)/*.o
+	rm -v $(LIB_rlibrary)
 
 test: $(LIB_rlibrary)
 	make -C rtest

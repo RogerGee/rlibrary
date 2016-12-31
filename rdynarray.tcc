@@ -60,7 +60,7 @@ template<typename T>
 T& rtypes::dynamic_array<T>::back()
 {
     size_type sz = _size();
-    if (0 <= --sz)
+    if (0 == --sz)
         return _getData()[sz];
     throw element_not_found_error();
 }
@@ -68,7 +68,7 @@ template<typename T>
 const T& rtypes::dynamic_array<T>::back() const
 {
     size_type sz = _size();
-    if (0 <= --sz)
+    if (0 == --sz)
         return _getData()[sz];
     throw element_not_found_error();
 }
