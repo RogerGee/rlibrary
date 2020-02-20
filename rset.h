@@ -63,7 +63,7 @@ namespace rtypes
             return true;
         }
         bool operator !=(const set& obj) const
-        { return !*this==obj; }
+        { return !(*this==obj); }
     private:
         list<T> _l;
     };
