@@ -19,8 +19,8 @@ namespace {
         param_item(const str&);
 
         void init(int);
-        void init(const char* pstring);
-        void init(const str&);
+        /*void init(const char* pstring);
+        void init(const str&);*/
 
         const generic_string& as_string() const
         { return param.get_device(); }
@@ -50,14 +50,14 @@ namespace {
         param.clear();
         param << var;
     }
-    void param_item::init(const char* pstring)
+    /*void param_item::init(const char* pstring)
     {
         param.open(pstring);
     }
     void param_item::init(const str& s)
     {
         param.open( s.c_str() );
-    }
+    }*/
     int param_item::as_int() const
     {
         int i;

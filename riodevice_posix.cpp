@@ -142,11 +142,11 @@ bool io_stream::_inDevice() const
 {
     if (_device != NULL)
     {
-        char buffer[4096];
-        _device->read(buffer,4096);
+        char buf[4096];
+        _device->read(buf,4096);
         if (_device->get_last_operation_status() == success_read)
         {
-            _bufIn.push_range(buffer,_device->get_last_byte_count());
+            _bufIn.push_range(buf,_device->get_last_byte_count());
             return true;
         }
     }
@@ -166,11 +166,11 @@ bool binary_io_stream::_inDevice() const
 {
     if (_device != NULL)
     {
-        char buffer[4096];
-        _device->read(buffer,4096);
+        char buf[4096];
+        _device->read(buf,4096);
         if (_device->get_last_operation_status() == success_read)
         {
-            _bufIn.push_range(buffer,_device->get_last_byte_count());
+            _bufIn.push_range(buf,_device->get_last_byte_count());
             return true;
         }
     }

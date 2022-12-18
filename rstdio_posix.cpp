@@ -47,11 +47,11 @@ void standard_device::_openEvent(const char*,io_access_flag kind,io_resource** p
 // rtypes::standard_stream
 bool standard_stream::_inDevice() const
 {
-    char buffer[4096];
-    _device->read(buffer,4096);
+    char buf[4096];
+    _device->read(buf,4096);
     if (_device->get_last_operation_status() == success_read)
     {
-        _bufIn.push_range(buffer,_device->get_last_byte_count());
+        _bufIn.push_range(buf,_device->get_last_byte_count());
         return true;
     }
     return false;
@@ -68,11 +68,11 @@ void standard_stream::_outDevice()
 // rtypes::standard_binary_stream
 bool standard_binary_stream::_inDevice() const
 {
-    char buffer[4096];
-    _device->read(buffer,4096);
+    char buf[4096];
+    _device->read(buf,4096);
     if (_device->get_last_operation_status() == success_read)
     {
-        _bufIn.push_range(buffer,_device->get_last_byte_count());
+        _bufIn.push_range(buf,_device->get_last_byte_count());
         return true;
     }
     return false;
